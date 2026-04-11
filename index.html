@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uzimeleni Scholar Transport Association</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Custom styles -->
+  <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+
+
+<!-- ================================================================
+     PUBLIC SITE  (default view — no login required)
+     ================================================================ -->
+<div id="public-site">
+
+  <!-- ==================== PUBLIC NAVBAR ==================== -->
+  <nav id="public-navbar" class="navbar navbar-expand-lg fixed-top pub-navbar" role="navigation">
+    <div class="container">
+
+      <!-- Brand -->
+      <a class="navbar-brand d-flex align-items-center gap-2 fw-bold pub-brand"
+         href="#" onclick="showPublicSection('home'); return false;">
+        <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary"
+             style="width:34px;height:34px;flex-shrink:0">
+          <i class="bi bi-bus-front-fill text-white" style="font-size:.95rem"></i>
+        </div>
+        UZIMELENI
+      </a>
+
+      <!-- Mobile toggle -->
+      <button class="navbar-toggler border-0" type="button"
+              data-bs-toggle="collapse" data-bs-target="#publicNavCollapse"
+              aria-controls="publicNavCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- Links -->
+      <div class="collapse navbar-collapse" id="publicNavCollapse">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 mt-3 mt-lg-0">
+          <li class="nav-item">
+            <a class="nav-link pub-nav-link px-3" href="#" data-section="home">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link pub-nav-link px-3" href="#" data-section="about">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link pub-nav-link px-3" href="#" data-section="contact">Contact</a>
+          </li>
+          <li class="nav-item mt-2 mt-lg-0">
+            <button class="btn btn-outline-light px-3" data-bs-toggle="modal" data-bs-target="#signupModal">
+              <i class="bi bi-person-plus me-1"></i>Register
+            </button>
+          </li>
+          <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+            <button class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#loginModal">
+              <i class="bi bi-box-arrow-in-right me-1"></i>Login
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ====================== HOME SECTION ====================== -->
+  <div id="pub-section-home" class="pub-section">
+
+    <!-- Hero -->
+    <section class="pub-hero">
+      <div class="container">
+        <div class="row align-items-center g-5">
+          <div class="col-lg-7" data-aos="fade-right">
+            <span class="badge bg-white text-primary fw-semibold px-3 py-2 mb-4 d-inline-block" style="font-size:.8rem">
+              <i class="bi bi-patch-check-fill me-1"></i>KwaZulu-Natal Registered Association
+            </span>
+            <h1 class="display-4 fw-bold mb-4 lh-sm">
+              Safe Scholar Transport<br>
+              <span class="text-warning">You Can Trust</span>
+            </h1>
+            <p class="lead mb-5" style="color:rgba(255,255,255,.78)">
+              Uzimeleni Scholar Transport Association connects learners across the region
+              with safe, reliable, and affordable daily transport to and from school.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+              <button class="btn btn-warning btn-lg fw-semibold px-4"
+                      data-bs-toggle="modal" data-bs-target="#loginModal">
+                <i class="bi bi-person-circle me-2"></i>Member Portal
+              </button>
+              <button class="btn btn-outline-light btn-lg px-4"
+                      onclick="showPublicSection('about')">
+                Learn More <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-lg-5 d-none d-lg-flex justify-content-center">
+            <div class="hero-icon-wrap">
+              <i class="bi bi-bus-front-fill hero-icon text-warning"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats band -->
+    <section class="pub-stats py-5">
+      <div class="container">
+        <div class="row g-4 text-center">
+          <div class="col-6 col-md-3">
+            <div class="stat-counter fw-bold text-white" data-target="847">0</div>
+            <div class="mt-1 text-white-50 small fw-medium">Students Transported (2026)</div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-counter fw-bold text-white" data-target="12">0</div>
+            <div class="mt-1 text-white-50 small fw-medium">Schools Serviced</div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-counter fw-bold text-white" data-target="24">0</div>
+            <div class="mt-1 text-white-50 small fw-medium">Active Routes</div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-counter fw-bold text-white" data-target="8">0</div>
+            <div class="mt-1 text-white-50 small fw-medium">Years of Service</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why choose us -->
+    <section class="py-5 bg-light">
+      <div class="container">
+        <div class="text-center mb-5">
+          <h2 class="fw-bold">Why Choose Uzimeleni?</h2>
+          <p class="text-muted">We hold ourselves to the highest standards of safety and service</p>
+        </div>
+        <div class="row g-4">
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3">
+              <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle mb-3"
+                   style="width:64px;height:64px">
+                <i class="bi bi-shield-check text-primary fs-3"></i>
+              </div>
+              <h6 class="fw-bold">Vetted Drivers</h6>
+              <p class="text-muted small mb-0">All drivers are background-checked and trained in child safety.</p>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3">
+              <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle mb-3"
+                   style="width:64px;height:64px">
+                <i class="bi bi-truck-front text-success fs-3"></i>
+              </div>
+              <h6 class="fw-bold">Roadworthy Vehicles</h6>
+              <p class="text-muted small mb-0">Regular inspections ensure every vehicle meets legal requirements.</p>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3">
+              <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle mb-3"
+                   style="width:64px;height:64px">
+                <i class="bi bi-clock-fill text-warning fs-3"></i>
+              </div>
+              <h6 class="fw-bold">Punctual &amp; Reliable</h6>
+              <p class="text-muted small mb-0">Consistent schedules so learners never miss school time.</p>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="text-center p-3">
+              <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-info-subtle mb-3"
+                   style="width:64px;height:64px">
+                <i class="bi bi-telephone-fill text-info fs-3"></i>
+              </div>
+              <h6 class="fw-bold">Parent Communication</h6>
+              <p class="text-muted small mb-0">Parents are kept informed about routes, schedules, and any changes.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Meet the committee -->
+    <section class="py-5">
+      <div class="container">
+        <div class="text-center mb-5">
+          <h2 class="fw-bold">Meet Our Committee</h2>
+          <p class="text-muted">The dedicated team managing Uzimeleni Scholar Transport Association</p>
+        </div>
+        <div class="row g-4" id="committee-grid">
+          <!-- Rendered by public.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-5" style="background:linear-gradient(135deg,#0d1b4b,#0d6efd)">
+      <div class="container text-center py-3">
+        <h3 class="fw-bold text-white mb-3">Are you a transport operator?</h3>
+        <p class="mb-4" style="color:rgba(255,255,255,.75)">
+          Join Uzimeleni and get access to our management portal, route coordination,<br class="d-none d-md-block">
+          compliance tracking, and community support.
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+          <button class="btn btn-warning btn-lg fw-semibold px-4"
+                  onclick="showPublicSection('contact')">
+            <i class="bi bi-envelope me-2"></i>Get In Touch
+          </button>
+          <button class="btn btn-outline-light btn-lg px-4"
+                  onclick="showPublicSection('about')">
+            Learn About Us
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <!-- /HOME SECTION -->
+
+
+  <!-- ====================== ABOUT SECTION ====================== -->
+  <div id="pub-section-about" class="pub-section" style="display:none">
+
+    <section class="pub-page-hero">
+      <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb mb-0" style="--bs-breadcrumb-divider-color:rgba(255,255,255,.4)">
+            <li class="breadcrumb-item">
+              <a href="#" class="text-white-50 text-decoration-none" onclick="showPublicSection('home'); return false;">Home</a>
+            </li>
+            <li class="breadcrumb-item text-white active">About</li>
+          </ol>
+        </nav>
+        <h1 class="display-5 fw-bold mb-2">About Us</h1>
+        <p class="lead mb-0" style="color:rgba(255,255,255,.72)">Our story, mission, and values</p>
+      </div>
+    </section>
+
+    <section class="py-5">
+      <div class="container">
+        <div class="row g-5 align-items-center">
+          <div class="col-lg-6">
+            <h2 class="fw-bold mb-4">Who We Are</h2>
+            <p class="text-muted mb-3">
+              <strong>Uzimeleni Scholar Transport Association</strong> was founded in 2018 by a group
+              of dedicated transport operators who recognised the need for a structured, accountable,
+              and safe scholar transport service in the KwaZulu-Natal community.
+            </p>
+            <p class="text-muted mb-3">
+              The name <em>"Uzimeleni"</em> means <strong>"stand up for yourself"</strong> — reflecting
+              our commitment to empowering transport operators while upholding the highest standards
+              of safety and service for learners.
+            </p>
+            <p class="text-muted mb-4">
+              Today we operate across multiple schools in the greater Durban region, transporting
+              hundreds of learners daily under a strict code of conduct that every member is obliged
+              to uphold.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+              <button class="btn btn-primary" onclick="showPublicSection('contact')">
+                <i class="bi bi-envelope me-2"></i>Contact Us
+              </button>
+              <button class="btn btn-outline-secondary" onclick="downloadDoc(event,'Code of Conduct')">
+                <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>Code of Conduct
+              </button>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="card border-0 bg-primary-subtle h-100 p-4 rounded-3">
+                  <i class="bi bi-shield-check text-primary fs-2 mb-2"></i>
+                  <h6 class="fw-bold">Safety First</h6>
+                  <p class="small text-muted mb-0">Vehicles regularly inspected. Drivers vetted and professionally trained.</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="card border-0 bg-success-subtle h-100 p-4 rounded-3">
+                  <i class="bi bi-people text-success fs-2 mb-2"></i>
+                  <h6 class="fw-bold">Community Driven</h6>
+                  <p class="small text-muted mb-0">Run by local operators who understand the community's transport needs.</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="card border-0 bg-warning-subtle h-100 p-4 rounded-3">
+                  <i class="bi bi-clipboard-check text-warning fs-2 mb-2"></i>
+                  <h6 class="fw-bold">Accountable</h6>
+                  <p class="small text-muted mb-0">Transparent governance, regular meetings, and audited financial reporting.</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="card border-0 bg-info-subtle h-100 p-4 rounded-3">
+                  <i class="bi bi-mortarboard text-info fs-2 mb-2"></i>
+                  <h6 class="fw-bold">Learner Focused</h6>
+                  <p class="small text-muted mb-0">Every decision is made with the best interests of the learners in mind.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vision & Mission -->
+    <section class="py-5 bg-light">
+      <div class="container">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100 p-4 rounded-3">
+              <div class="d-flex gap-3 mb-3 align-items-center">
+                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width:50px;height:50px">
+                  <i class="bi bi-eye text-white fs-5"></i>
+                </div>
+                <h4 class="fw-bold mb-0">Our Vision</h4>
+              </div>
+              <p class="text-muted mb-0">
+                To be the leading scholar transport association in the region — recognised for
+                safety, accountability, and excellence in service delivery to learners and their families.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100 p-4 rounded-3">
+              <div class="d-flex gap-3 mb-3 align-items-center">
+                <div class="rounded-circle bg-success d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width:50px;height:50px">
+                  <i class="bi bi-flag text-white fs-5"></i>
+                </div>
+                <h4 class="fw-bold mb-0">Our Mission</h4>
+              </div>
+              <p class="text-muted mb-0">
+                To provide safe, reliable, and affordable scholar transport by supporting operators,
+                enforcing compliance standards, and fostering a culture of community responsibility
+                across all routes.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timeline -->
+    <section class="py-5">
+      <div class="container">
+        <h3 class="fw-bold text-center mb-5">Our Journey</h3>
+        <div class="row justify-content-center">
+          <div class="col-lg-8">
+            <div class="timeline">
+
+              <div class="timeline-item d-flex gap-4 mb-4">
+                <div class="timeline-dot flex-shrink-0 d-flex flex-column align-items-center">
+                  <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
+                       style="width:44px;height:44px;font-size:.8rem">2018</div>
+                  <div class="flex-grow-1 border-start border-2 border-primary-subtle" style="min-height:40px;margin-top:4px"></div>
+                </div>
+                <div class="pt-1">
+                  <h6 class="fw-bold mb-1">Founded</h6>
+                  <p class="text-muted small mb-0">Uzimeleni was established by 5 founding operators committed to improving scholar transport standards in Umlazi.</p>
+                </div>
+              </div>
+
+              <div class="timeline-item d-flex gap-4 mb-4">
+                <div class="timeline-dot flex-shrink-0 d-flex flex-column align-items-center">
+                  <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
+                       style="width:44px;height:44px;font-size:.8rem">2020</div>
+                  <div class="flex-grow-1 border-start border-2 border-primary-subtle" style="min-height:40px;margin-top:4px"></div>
+                </div>
+                <div class="pt-1">
+                  <h6 class="fw-bold mb-1">Formal Registration</h6>
+                  <p class="text-muted small mb-0">The association was formally registered as a Non-Profit Organisation and expanded to 3 schools.</p>
+                </div>
+              </div>
+
+              <div class="timeline-item d-flex gap-4 mb-4">
+                <div class="timeline-dot flex-shrink-0 d-flex flex-column align-items-center">
+                  <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
+                       style="width:44px;height:44px;font-size:.8rem">2022</div>
+                  <div class="flex-grow-1 border-start border-2 border-primary-subtle" style="min-height:40px;margin-top:4px"></div>
+                </div>
+                <div class="pt-1">
+                  <h6 class="fw-bold mb-1">Growth &amp; Compliance</h6>
+                  <p class="text-muted small mb-0">Membership grew to 20 operators. A Code of Conduct was adopted and vehicle compliance inspections introduced.</p>
+                </div>
+              </div>
+
+              <div class="timeline-item d-flex gap-4">
+                <div class="timeline-dot flex-shrink-0">
+                  <div class="rounded-circle bg-warning d-flex align-items-center justify-content-center text-white fw-bold"
+                       style="width:44px;height:44px;font-size:.8rem">2026</div>
+                </div>
+                <div class="pt-1">
+                  <h6 class="fw-bold mb-1">Today</h6>
+                  <p class="text-muted small mb-0">847 learners transported daily across 12 schools and 24 routes. Digital management system introduced for full operational transparency.</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <!-- /ABOUT SECTION -->
+
+
+  <!-- ====================== CONTACT SECTION ====================== -->
+  <div id="pub-section-contact" class="pub-section" style="display:none">
+
+    <section class="pub-page-hero">
+      <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+          <ol class="breadcrumb mb-0" style="--bs-breadcrumb-divider-color:rgba(255,255,255,.4)">
+            <li class="breadcrumb-item">
+              <a href="#" class="text-white-50 text-decoration-none" onclick="showPublicSection('home'); return false;">Home</a>
+            </li>
+            <li class="breadcrumb-item text-white active">Contact</li>
+          </ol>
+        </nav>
+        <h1 class="display-5 fw-bold mb-2">Contact Us</h1>
+        <p class="lead mb-0" style="color:rgba(255,255,255,.72)">We'd love to hear from you</p>
+      </div>
+    </section>
+
+    <section class="py-5">
+      <div class="container">
+        <div class="row g-5">
+
+          <!-- Contact form -->
+          <div class="col-lg-7">
+            <h4 class="fw-bold mb-4">Send a Message</h4>
+            <div class="card border-0 shadow-sm p-4 rounded-3">
+              <form id="contact-form" novalidate>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Full Name *</label>
+                    <input type="text" class="form-control" id="contact-name"
+                           required placeholder="Your full name">
+                    <div class="invalid-feedback">Required.</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Phone</label>
+                    <input type="tel" class="form-control" id="contact-phone"
+                           placeholder="e.g. 082 123 4567">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label fw-medium">Email Address *</label>
+                    <input type="email" class="form-control" id="contact-email"
+                           required placeholder="your@email.com">
+                    <div class="invalid-feedback">Valid email required.</div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label fw-medium">Subject *</label>
+                    <select class="form-select" id="contact-subject" required>
+                      <option value="">Select a subject…</option>
+                      <option>Joining the Association</option>
+                      <option>Transport Enquiry</option>
+                      <option>Complaint / Report an Issue</option>
+                      <option>General Enquiry</option>
+                    </select>
+                    <div class="invalid-feedback">Please select a subject.</div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label fw-medium">Message *</label>
+                    <textarea class="form-control" id="contact-message" rows="5"
+                              required placeholder="Type your message here…"></textarea>
+                    <div class="invalid-feedback">Required.</div>
+                  </div>
+                  <div class="col-12">
+                    <button type="submit" class="btn btn-primary px-4">
+                      <i class="bi bi-send me-2"></i>Send Message
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Contact info -->
+          <div class="col-lg-5">
+            <h4 class="fw-bold mb-4">Get in Touch</h4>
+
+            <div class="d-flex gap-3 mb-4">
+              <div class="flex-shrink-0 rounded-circle bg-primary-subtle text-primary
+                          d-flex align-items-center justify-content-center"
+                   style="width:48px;height:48px">
+                <i class="bi bi-geo-alt-fill"></i>
+              </div>
+              <div>
+                <div class="fw-semibold mb-1">Address</div>
+                <div class="text-muted small">123 Mthembu Street, Umlazi<br>Durban, KwaZulu-Natal, 4031</div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3 mb-4">
+              <div class="flex-shrink-0 rounded-circle bg-success-subtle text-success
+                          d-flex align-items-center justify-content-center"
+                   style="width:48px;height:48px">
+                <i class="bi bi-telephone-fill"></i>
+              </div>
+              <div>
+                <div class="fw-semibold mb-1">Phone</div>
+                <div class="text-muted small">+27 31 000 1234<br>+27 82 999 8888 (WhatsApp)</div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3 mb-4">
+              <div class="flex-shrink-0 rounded-circle bg-warning-subtle text-warning
+                          d-flex align-items-center justify-content-center"
+                   style="width:48px;height:48px">
+                <i class="bi bi-envelope-fill"></i>
+              </div>
+              <div>
+                <div class="fw-semibold mb-1">Email</div>
+                <div class="text-muted small">info@uzimeleni.co.za<br>secretary@uzimeleni.co.za</div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3 mb-4">
+              <div class="flex-shrink-0 rounded-circle bg-info-subtle text-info
+                          d-flex align-items-center justify-content-center"
+                   style="width:48px;height:48px">
+                <i class="bi bi-clock-fill"></i>
+              </div>
+              <div>
+                <div class="fw-semibold mb-1">Office Hours</div>
+                <div class="text-muted small">Monday – Friday: 07:00 – 17:00<br>Saturday: 08:00 – 12:00</div>
+              </div>
+            </div>
+
+            <div class="card border-0 bg-success-subtle p-3 rounded-3">
+              <div class="fw-semibold mb-1">
+                <i class="bi bi-whatsapp text-success me-2 fs-5"></i>WhatsApp Us
+              </div>
+              <p class="small text-muted mb-0">For quick queries send us a message at
+                <strong>+27 82 999 8888</strong> — we typically respond within 2 hours.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <!-- /CONTACT SECTION -->
+
+
+  <!-- ====================== FOOTER ====================== -->
+  <footer class="pub-footer" role="contentinfo">
+    <div class="container">
+      <div class="row g-4 py-5">
+
+        <!-- Brand + socials -->
+        <div class="col-lg-4 col-md-6">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:40px;height:40px">
+              <i class="bi bi-bus-front-fill text-white"></i>
+            </div>
+            <div>
+              <div class="fw-bold text-white fs-5 lh-1">Uzimeleni</div>
+              <div style="font-size:.72rem;color:rgba(255,255,255,.45)">Scholar Transport Association</div>
+            </div>
+          </div>
+          <p class="mb-4" style="color:rgba(255,255,255,.55);font-size:.88rem;line-height:1.7">
+            Providing safe, reliable scholar transport since 2018.
+            Committed to the safety and well-being of every learner we serve.
+          </p>
+
+          <!-- Social icons -->
+          <div class="d-flex gap-2">
+            <a href="#" class="social-icon" title="Facebook"   onclick="handleSocialClick(event,'Facebook')">
+              <i class="bi bi-facebook"></i></a>
+            <a href="#" class="social-icon" title="Instagram"  onclick="handleSocialClick(event,'Instagram')">
+              <i class="bi bi-instagram"></i></a>
+            <a href="#" class="social-icon" title="Twitter / X" onclick="handleSocialClick(event,'Twitter/X')">
+              <i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="social-icon" title="WhatsApp"   onclick="handleSocialClick(event,'WhatsApp')">
+              <i class="bi bi-whatsapp"></i></a>
+            <a href="#" class="social-icon" title="YouTube"    onclick="handleSocialClick(event,'YouTube')">
+              <i class="bi bi-youtube"></i></a>
+          </div>
+        </div>
+
+        <!-- Quick links -->
+        <div class="col-lg-2 col-md-3 col-6">
+          <h6 class="text-white fw-semibold mb-3 text-uppercase" style="font-size:.78rem;letter-spacing:.8px">Quick Links</h6>
+          <ul class="footer-links list-unstyled">
+            <li><a href="#" onclick="showPublicSection('home');    return false;">Home</a></li>
+            <li><a href="#" onclick="showPublicSection('about');   return false;">About Us</a></li>
+            <li><a href="#" onclick="showPublicSection('contact'); return false;">Contact</a></li>
+            <li><a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Member Login</a></li>
+          </ul>
+        </div>
+
+        <!-- Documents -->
+        <div class="col-lg-3 col-md-3 col-6">
+          <h6 class="text-white fw-semibold mb-3 text-uppercase" style="font-size:.78rem;letter-spacing:.8px">Documents</h6>
+          <ul class="footer-links list-unstyled">
+            <li>
+              <a href="#" onclick="downloadDoc(event,'Code of Conduct')">
+                <i class="bi bi-file-earmark-pdf text-danger me-1"></i>Code of Conduct
+              </a>
+            </li>
+            <li>
+              <a href="#" onclick="downloadDoc(event,'Price List 2026')">
+                <i class="bi bi-file-earmark-pdf text-danger me-1"></i>Price List 2026
+              </a>
+            </li>
+            <li>
+              <a href="#" onclick="downloadDoc(event,'Route Map')">
+                <i class="bi bi-file-earmark-pdf text-danger me-1"></i>Route Map
+              </a>
+            </li>
+            <li>
+              <a href="#" onclick="downloadDoc(event,'Application Form')">
+                <i class="bi bi-file-earmark-pdf text-danger me-1"></i>Application Form
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Contact snippet -->
+        <div class="col-lg-3 col-md-6">
+          <h6 class="text-white fw-semibold mb-3 text-uppercase" style="font-size:.78rem;letter-spacing:.8px">Contact Info</h6>
+          <ul class="list-unstyled mb-0" style="color:rgba(255,255,255,.55);font-size:.88rem">
+            <li class="mb-2">
+              <i class="bi bi-geo-alt me-2 text-primary"></i>123 Mthembu St, Umlazi, Durban
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-telephone me-2 text-primary"></i>+27 31 000 1234
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-whatsapp me-2 text-success"></i>+27 82 999 8888
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-envelope me-2 text-primary"></i>info@uzimeleni.co.za
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-clock me-2 text-primary"></i>Mon–Fri: 07:00 – 17:00
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <hr style="border-color:rgba(255,255,255,.1);margin:0">
+
+      <div class="row py-3 align-items-center g-2">
+        <div class="col-md-6" style="color:rgba(255,255,255,.4);font-size:.8rem">
+          &copy; 2026 Uzimeleni Scholar Transport Association. All rights reserved.
+        </div>
+        <div class="col-md-6 text-md-end" style="color:rgba(255,255,255,.4);font-size:.8rem">
+          Registered Non-Profit Association &bull; KwaZulu-Natal &bull;
+          <a href="#" class="text-white-50 text-decoration-none"
+             onclick="downloadDoc(event,'Privacy Policy')">Privacy Policy</a>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+</div>
+<!-- /PUBLIC SITE -->
+
+
+<!-- ================================================================
+     LOGIN MODAL
+     ================================================================ -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-xl">
+      <div class="modal-header border-0 pb-0 pt-4 px-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center"
+               style="width:44px;height:44px">
+            <i class="bi bi-bus-front-fill text-primary fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold mb-0" id="loginModalLabel">Member Login</h5>
+            <div class="text-muted small">Uzimeleni Management System</div>
+          </div>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body px-4 py-3">
+        <div id="login-error" class="alert alert-danger py-2 mb-3" style="display:none;"></div>
+
+        <form id="login-form" novalidate>
+          <div class="mb-3">
+            <label class="form-label fw-medium" for="login-username">Username</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-person text-muted"></i></span>
+              <input type="text" id="login-username" class="form-control border-start-0"
+                     placeholder="Enter your username" autocomplete="username" required>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-medium" for="login-password">Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-lock text-muted"></i></span>
+              <input type="password" id="login-password"
+                     class="form-control border-start-0 border-end-0"
+                     placeholder="Enter your password" autocomplete="current-password" required>
+              <button type="button" id="toggle-password"
+                      class="btn btn-outline-secondary border-start-0" title="Show/hide password">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+          </button>
+        </form>
+
+        <hr class="my-3">
+
+        <p class="text-muted small text-center mb-2 fw-medium">
+          Demo accounts &mdash; password: <code>password123</code>
+        </p>
+        <div class="row g-1 text-center">
+          <div class="col-6">
+            <div class="border rounded p-2 bg-light">
+              <div class="small fw-semibold">chairperson</div>
+              <div class="text-muted" style="font-size:.7rem">Full Access</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="border rounded p-2 bg-light">
+              <div class="small fw-semibold">secretary</div>
+              <div class="text-muted" style="font-size:.7rem">Meetings</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="border rounded p-2 bg-light">
+              <div class="small fw-semibold">treasurer</div>
+              <div class="text-muted" style="font-size:.7rem">Payments</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="border rounded p-2 bg-light">
+              <div class="small fw-semibold">owner1</div>
+              <div class="text-muted" style="font-size:.7rem">Own Data</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="border rounded p-2 bg-light">
+              <div class="small fw-semibold">security</div>
+              <div class="text-muted" style="font-size:.7rem">Flags &amp; Search</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sign-up link -->
+        <p class="text-center text-muted small mt-3 mb-0">
+          Don't have an account?
+          <a href="#" class="text-primary fw-semibold text-decoration-none"
+             data-bs-dismiss="modal"
+             onclick="setTimeout(()=>bootstrap.Modal.getOrCreateInstance(document.getElementById('signupModal')).show(),200)">
+            Register here
+          </a>
+        </p>
+      </div>
+      <div class="pb-3"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     SIGN-UP MODAL
+     ================================================================ -->
+<div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="signupModalLabel" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content shadow-xl">
+
+      <div class="modal-header border-0 pb-0 pt-4 px-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-success-subtle d-flex align-items-center justify-content-center"
+               style="width:44px;height:44px">
+            <i class="bi bi-person-plus-fill text-success fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold mb-0" id="signupModalLabel">Create an Account</h5>
+            <div class="text-muted small">Join the Uzimeleni member portal</div>
+          </div>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body px-4 pt-3 pb-0">
+        <div id="signup-error" class="alert alert-danger py-2 mb-3" style="display:none;"></div>
+
+        <form id="signup-form" novalidate>
+          <div class="mb-3">
+            <label class="form-label fw-medium" for="signup-username">Username *</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-at text-muted"></i></span>
+              <input type="text" id="signup-username" class="form-control border-start-0"
+                     placeholder="Choose a username" autocomplete="off"
+                     pattern="[A-Za-z0-9_]{3,}" required>
+            </div>
+            <div class="form-text">Letters, numbers and underscores. At least 3 characters.</div>
+            <div class="invalid-feedback">Minimum 3 characters, no spaces.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-medium" for="signup-password">Password *</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-lock text-muted"></i></span>
+              <input type="password" id="signup-password" class="form-control border-start-0"
+                     placeholder="Create a password" autocomplete="new-password"
+                     minlength="6" required>
+            </div>
+            <div class="mt-2">
+              <div class="progress" style="height:5px">
+                <div id="strength-bar" class="progress-bar" style="width:0%;transition:width .3s"></div>
+              </div>
+              <span id="strength-label" class="small"></span>
+            </div>
+            <div class="invalid-feedback">Minimum 6 characters.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-medium" for="signup-confirm">Confirm Password *</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-lock-fill text-muted"></i></span>
+              <input type="password" id="signup-confirm" class="form-control border-start-0"
+                     placeholder="Re-enter your password" autocomplete="new-password" required>
+            </div>
+            <div class="invalid-feedback">Passwords do not match.</div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer px-4 border-0 pt-3 pb-4 flex-column align-items-stretch gap-2">
+        <button type="submit" form="signup-form" class="btn btn-success w-100 py-2 fw-semibold">
+          <i class="bi bi-person-check me-2"></i>Create Account
+        </button>
+        <p class="text-center text-muted small mb-0">
+          Already have an account?
+          <a href="#" class="text-primary fw-semibold text-decoration-none"
+             data-bs-dismiss="modal"
+             onclick="setTimeout(()=>bootstrap.Modal.getOrCreateInstance(document.getElementById('loginModal')).show(),200)">
+            Sign in
+          </a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     ADMIN APP  (visible only when logged in)
+     ================================================================ -->
+<div id="app-page" style="display:none;">
+
+  <!-- Mobile sidebar overlay -->
+  <div id="sidebar-overlay"></div>
+
+  <!-- ---- SIDEBAR ---- -->
+  <aside id="sidebar" class="sidebar" role="navigation" aria-label="Admin navigation">
+    <div class="sidebar-header">
+      <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle flex-shrink-0"
+           style="width:38px;height:38px">
+        <i class="bi bi-bus-front-fill text-primary"></i>
+      </div>
+      <div>
+        <div class="sidebar-brand-name">Uzimeleni</div>
+        <div class="sidebar-brand-sub">Scholar Transport</div>
+      </div>
+    </div>
+    <ul id="sidebar-nav" role="menubar"></ul>
+  </aside>
+
+  <!-- ---- MAIN CONTENT ---- -->
+  <div class="main-content">
+
+    <!-- Top Navbar -->
+    <header class="top-navbar" role="banner">
+      <button id="sidebar-toggle" class="btn btn-sm btn-outline-secondary d-md-none"
+              aria-label="Toggle navigation">
+        <i class="bi bi-list fs-5"></i>
+      </button>
+      <span id="page-title" class="fw-semibold fs-5 d-none d-md-block">Dashboard</span>
+
+      <div class="ms-auto d-flex align-items-center gap-3">
+        <div class="text-end d-none d-sm-block lh-sm">
+          <div class="fw-semibold small" id="user-display-name"></div>
+          <div class="text-muted" style="font-size:.75rem" id="user-display-role"></div>
+        </div>
+        <i class="bi bi-person-circle text-primary fs-3" aria-hidden="true"></i>
+        <button id="logout-btn" class="btn btn-sm btn-outline-danger" title="Logout">
+          <i class="bi bi-box-arrow-right me-1"></i>
+          <span class="d-none d-sm-inline">Logout</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="content-area" role="main">
+
+      <div id="section-dashboard" class="section">
+        <div id="dashboard-content"></div>
+      </div>
+
+      <div id="section-owners" class="section" style="display:none;">
+        <div id="owners-content"></div>
+      </div>
+
+      <div id="section-vehicles" class="section" style="display:none;">
+        <div id="vehicles-content"></div>
+      </div>
+
+      <div id="section-drivers" class="section" style="display:none;">
+        <div id="drivers-content"></div>
+      </div>
+
+      <div id="section-meetings" class="section" style="display:none;">
+        <div id="meetings-content"></div>
+      </div>
+
+      <div id="section-payments" class="section" style="display:none;">
+        <div id="payments-content"></div>
+      </div>
+
+      <div id="section-flags" class="section" style="display:none;">
+        <div id="flags-content"></div>
+      </div>
+
+    </main>
+  </div>
+
+</div>
+<!-- /APP PAGE -->
+
+
+<!-- Toast container -->
+<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"
+     style="z-index:9999;" aria-live="polite" aria-atomic="true"></div>
+
+
+<!-- ================================================================
+     APP MODALS  (kept at body level so Bootstrap fixed positioning works)
+     ================================================================ -->
+
+<!-- Owner Modal -->
+<div class="modal fade" id="ownerModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ownerModalTitle">Add Owner</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="owner-form" novalidate>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-medium">First Name *</label>
+              <input type="text" class="form-control" id="owner-name" required>
+              <div class="invalid-feedback">Required.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Surname *</label>
+              <input type="text" class="form-control" id="owner-surname" required>
+              <div class="invalid-feedback">Required.</div>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-medium">ID Number *</label>
+              <input type="text" class="form-control" id="owner-idnumber" maxlength="13"
+                     pattern="[0-9]{13}" required placeholder="13-digit SA ID">
+              <div class="invalid-feedback">Must be 13 digits.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Phone *</label>
+              <input type="tel" class="form-control" id="owner-phone" required>
+              <div class="invalid-feedback">Required.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Email</label>
+              <input type="email" class="form-control" id="owner-email" placeholder="optional">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Status</label>
+              <select class="form-select" id="owner-status">
+                <option value="Active">Active</option>
+                <option value="Suspended">Suspended</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Number of Cars</label>
+              <input type="number" class="form-control" id="owner-cars" min="0" max="20" value="1">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveOwner()">
+          <i class="bi bi-check-lg me-1"></i>Save Owner
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Vehicle Modal -->
+<div class="modal fade" id="vehicleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="vehicleModalTitle">Add Vehicle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="vehicle-form" novalidate>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Registration Number *</label>
+            <input type="text" class="form-control text-uppercase" id="vehicle-reg"
+                   required placeholder="e.g. GP 123 ABC">
+            <div class="invalid-feedback">Required.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Owner *</label>
+            <select class="form-select" id="vehicle-owner" required>
+              <option value="">Select Owner…</option>
+            </select>
+            <div class="invalid-feedback">Please select an owner.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Car Type *</label>
+            <input type="text" class="form-control" id="vehicle-type"
+                   required placeholder="e.g. Toyota Quantum">
+            <div class="invalid-feedback">Required.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Status</label>
+            <select class="form-select" id="vehicle-status">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveVehicle()">
+          <i class="bi bi-check-lg me-1"></i>Save Vehicle
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Driver Modal -->
+<div class="modal fade" id="driverModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="driverModalTitle">Add Driver</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="driver-form" novalidate>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-medium">First Name *</label>
+              <input type="text" class="form-control" id="driver-name" required>
+              <div class="invalid-feedback">Required.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Surname *</label>
+              <input type="text" class="form-control" id="driver-surname" required>
+              <div class="invalid-feedback">Required.</div>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-medium">ID Number *</label>
+              <input type="text" class="form-control font-monospace" id="driver-idnumber"
+                     maxlength="13" pattern="[0-9]{13}" required placeholder="13-digit SA ID">
+              <div class="invalid-feedback">Must be 13 digits.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Phone *</label>
+              <input type="tel" class="form-control" id="driver-phone" required>
+              <div class="invalid-feedback">Required.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Status</label>
+              <select class="form-select" id="driver-status">
+                <option value="Active">Active</option>
+                <option value="Suspended">Suspended</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveDriver()">
+          <i class="bi bi-check-lg me-1"></i>Save Driver
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Meeting Modal -->
+<div class="modal fade" id="meetingModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="meetingModalTitle">Schedule Meeting</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="meeting-form" novalidate>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Meeting Title *</label>
+            <input type="text" class="form-control" id="meeting-title" required
+                   placeholder="e.g. Monthly General Meeting — April">
+            <div class="invalid-feedback">Required.</div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-7">
+              <label class="form-label fw-medium">Date *</label>
+              <input type="date" class="form-control" id="meeting-date" required>
+              <div class="invalid-feedback">Required.</div>
+            </div>
+            <div class="col-5">
+              <label class="form-label fw-medium">Start Time *</label>
+              <input type="time" class="form-control" id="meeting-start-time" required>
+              <div class="invalid-feedback">Required.</div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Notes / Agenda</label>
+            <textarea class="form-control" id="meeting-notes" rows="4"
+                      placeholder="Agenda items, discussion points…"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveMeeting()">
+          <i class="bi bi-check-lg me-1"></i>Save Meeting
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Minutes Modal -->
+<div class="modal fade" id="minutesModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="minutesModalTitle">Meeting Minutes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="minutes-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="save-minutes-btn" onclick="saveMinutes()">
+          <i class="bi bi-floppy me-1"></i>Save Minutes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Attendance Modal -->
+<div class="modal fade" id="attendanceModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="attendanceModalTitle">Attendance</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="attendance-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="save-attendance-btn" onclick="saveAttendance()">
+          <i class="bi bi-check-lg me-1"></i>Save Attendance
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Scripts — order matters -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/public.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/owners.js"></script>
+<script src="js/vehicles.js"></script>
+<script src="js/drivers.js"></script>
+<script src="js/meetings.js"></script>
+<script src="js/payments.js"></script>
+<script src="js/flags.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
