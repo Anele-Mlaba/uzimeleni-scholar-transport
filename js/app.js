@@ -184,6 +184,7 @@ function _bindSignupForm() {
     if (!form.checkValidity()) return;
 
     const result = register({
+      idNumber: document.getElementById('signup-idnumber').value,
       username: document.getElementById('signup-username').value,
       password: document.getElementById('signup-password').value,
     });

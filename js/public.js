@@ -5,7 +5,6 @@
 function initPublicSite() {
   _renderCommittee();
   _bindPublicNav();
-  _bindContactForm();
   _bindNavbarScroll();
   showPublicSection('home');
 }
@@ -115,32 +114,6 @@ function _animateCounters() {
       el.textContent = current.toLocaleString('en-ZA');
       if (current >= target) clearInterval(tick);
     }, 18);
-  });
-}
-
-// ---- Contact form ---------------------------------------------
-
-function _bindContactForm() {
-  const form = document.getElementById('contact-form');
-  if (!form) return;
-
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    form.classList.add('was-validated');
-    if (!form.checkValidity()) return;
-
-    const btn = form.querySelector('button[type="submit"]');
-    btn.disabled    = true;
-    btn.innerHTML   = '<span class="spinner-border spinner-border-sm me-2"></span>Sending…';
-
-    await new Promise(r => setTimeout(r, 1600));
-
-    form.reset();
-    form.classList.remove('was-validated');
-    btn.disabled  = false;
-    btn.innerHTML = '<i class="bi bi-send me-2"></i>Send Message';
-
-    showToast('Message sent! We\'ll be in touch shortly.', 'success');
   });
 }
 

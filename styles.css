@@ -319,6 +319,11 @@ body {
   padding-bottom: 1rem;
 }
 
+.pub-navbar-logo {
+  height: 210px;
+  width: auto;
+}
+
 .pub-navbar .navbar-brand,
 .pub-navbar .nav-link {
   color: #fff !important;
@@ -344,12 +349,25 @@ body {
   filter: none;
 }
 
-/* Force dark icons on mobile (collapsed) */
+/* Mobile navbar: compact logo so the fixed bar doesn't bury content */
 @media (max-width: 991.98px) {
   .pub-navbar {
     background: rgba(13,23,55,0.96) !important;
-    padding-top: 0.6rem;
-    padding-bottom: 0.6rem;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+  }
+
+  .pub-navbar-logo {
+    height: 60px;
+  }
+
+  /* Re-align section padding to the smaller mobile navbar (~70px) */
+  .pub-hero {
+    padding-top: 90px;
+  }
+
+  .pub-page-hero {
+    padding-top: 5rem;
   }
 }
 

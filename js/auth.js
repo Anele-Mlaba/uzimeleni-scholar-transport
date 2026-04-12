@@ -16,7 +16,21 @@ function logout() {
   window.location.reload();
 }
 
-function register({ username, password }) {
+function register({ username, password, idNumber }) {
+  // Verify the ID number belongs to a registered association member
+  const owner = owners.find(o => o.idNumber === idNumber.trim());
+  if (!owner) {
+    return {
+      success: false,
+      error: 'Your ID number is not registered as a member of this association. Please contact the chairperson to join.',
+    };
+  }
+
+  // Prevent duplicate accounts for the same owner
+  if (MOCK_USERS.find(u => u.ownerId === owner.id)) {
+    return { success: false, error: 'An account already exists for this ID number. Please sign in instead.' };
+  }
+
   if (MOCK_USERS.find(u => u.username.toLowerCase() === username.toLowerCase())) {
     return { success: false, error: 'That username is already taken. Please choose another.' };
   }
@@ -26,8 +40,8 @@ function register({ username, password }) {
     username: username.trim(),
     password: password,
     role:     'owner',
-    name:     username.trim(),
-    ownerId:  null,
+    name:     `${owner.name} ${owner.surname}`,
+    ownerId:  owner.id,
   };
 
   MOCK_USERS.push(newUser);
@@ -57,7 +71,7 @@ function canAccess(section) {
     secretary:   ['dashboard', 'meetings'],
     treasurer:   ['dashboard', 'payments'],
     security:    ['vehicles', 'flags'],
-    owner:       ['vehicles', 'payments', 'meetings'], // owners do NOT see the dashboard
+    owner:       ['vehicles', 'payments', 'meetings'],
   };
 
   return (access[user.role] || []).includes(section);
