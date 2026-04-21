@@ -6,7 +6,7 @@ let _paymentFilter = '';
 
 async function renderPayments() {
   showLoading('payments-content');
-  await simulateDelay(300);
+  await Promise.all([refreshPayments(), refreshOwners()]);
 
   const user        = getCurrentUser();
   let allPayments   = getPayments();
@@ -137,7 +137,8 @@ function renderPaymentsTable() {
       <td class="text-center">${statusBadge(p.status)}</td>
       <td class="text-center">
         ${p.status === 'pending'
-          ? `<button class="btn btn-sm btn-success" onclick="processPayment(${p.id})">
+          ? `<button class="btn btn-sm btn-success" data-pay-id="${p.id}"
+                     onclick="processPayment('${p.id}')">
                <i class="bi bi-credit-card me-1"></i>Pay Now
              </button>`
           : `<span class="text-success small"><i class="bi bi-check-circle-fill me-1"></i>Paid</span>`
@@ -147,21 +148,54 @@ function renderPaymentsTable() {
 }
 
 async function processPayment(id) {
-  const p = payments.find(x => x.id === id);
+  const p     = getPayments().find(x => String(x.id) === String(id));
   if (!p) return;
 
-  // Simulate PayFast redirect
-  showToast('Connecting to PayFast gateway…', 'info');
-  const btn = document.querySelector(`button[onclick="processPayment(${id})"]`);
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing…'; }
+  const owner = getOwnerById(p.ownerId);
+  if (!owner) return;
 
-  await simulateDelay(1800);
+  const btn = document.querySelector(`[data-pay-id="${id}"]`);
+  if (btn) {
+    btn.disabled  = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Redirecting…';
+  }
 
-  markPaymentPaid(id);
+  showToast('Connecting to PayFast payment gateway…', 'info');
 
-  const ref = 'PF-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-  showToast(`Payment successful! Reference: ${ref}`, 'success');
+  const result = await PaymentsAPI.initiate({
+    amount:     p.amount.toFixed(2),
+    item_name:  p.description,
+    owner_id:   p.ownerId,
+    name_first: owner.name,
+    name_last:  owner.surname,
+    email:      owner.email || '',
+  });
 
-  // Re-render to update totals + table
-  await renderPayments();
+  if (!result.ok) {
+    showToast(result.data?.error || 'Failed to initiate payment.', 'danger');
+    if (btn) {
+      btn.disabled  = false;
+      btn.innerHTML = '<i class="bi bi-credit-card me-1"></i>Pay Now';
+    }
+    return;
+  }
+
+  const { payfast_url, payfast_data } = result.data;
+
+  // Build and submit a form to redirect the browser to PayFast
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = payfast_url;
+  form.style.display = 'none';
+
+  Object.entries(payfast_data).forEach(([key, value]) => {
+    const input = document.createElement('input');
+    input.type  = 'hidden';
+    input.name  = key;
+    input.value = String(value);
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
 }

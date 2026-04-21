@@ -7,16 +7,23 @@ let _paymentsChart = null;
 
 async function renderDashboard() {
   showLoading('dashboard-content');
-  await simulateDelay(350);
+  await Promise.all([
+    refreshOwners(),
+    refreshVehicles(),
+    refreshDrivers(),
+    refreshPayments(),
+    refreshMeetings(),
+  ]);
 
   const ownersList  = getOwners();
   const vehicleList = getVehicles();
   const driverList  = getDrivers();
   const flaggedList = getFlags();
   const activities  = getRecentActivities(6);
+  const paymentList = getPayments();
 
-  const paidAmt    = payments.filter(p => p.status === 'paid').reduce((s, p) => s + p.amount, 0);
-  const pendingAmt = payments.filter(p => p.status === 'pending').reduce((s, p) => s + p.amount, 0);
+  const paidAmt    = paymentList.filter(p => p.status === 'paid').reduce((s, p) => s + p.amount, 0);
+  const pendingAmt = paymentList.filter(p => p.status === 'pending').reduce((s, p) => s + p.amount, 0);
 
   document.getElementById('dashboard-content').innerHTML = `
     <!-- Stat cards -->
@@ -59,7 +66,9 @@ async function renderDashboard() {
             <i class="bi bi-clock-history text-primary me-2"></i>Recent Activities
           </div>
           <ul class="list-group list-group-flush">
-            ${activities.map(a => `
+            ${activities.length === 0
+              ? '<li class="list-group-item text-center text-muted py-4">No recent activity</li>'
+              : activities.map(a => `
               <li class="list-group-item d-flex align-items-center py-3 px-3">
                 <div class="activity-icon bg-${actColor(a.type)}-subtle text-${actColor(a.type)} rounded-circle me-3 flex-shrink-0">
                   <i class="bi ${a.icon}"></i>
@@ -106,14 +115,16 @@ async function renderDashboard() {
             <div class="progress" style="height:8px">
               <div class="progress-bar bg-success" style="width:${paidAmt + pendingAmt > 0 ? Math.round(paidAmt / (paidAmt + pendingAmt) * 100) : 0}%"></div>
             </div>
-            <div class="text-muted small mt-1 text-end">${paidAmt + pendingAmt > 0 ? Math.round(paidAmt / (paidAmt + pendingAmt) * 100) : 0}% collected</div>
+            <div class="text-muted small mt-1 text-end">
+              ${paidAmt + pendingAmt > 0 ? Math.round(paidAmt / (paidAmt + pendingAmt) * 100) : 0}% collected
+            </div>
           </div>
         </div>
       </div>
     </div>
   `;
 
-  _initPaymentsChart();
+  _initPaymentsChart(paymentList);
   _initMemberChart(ownersList);
 }
 
@@ -138,23 +149,27 @@ function statCard(label, value, sub, color, icon, isAlert = false) {
 }
 
 function actColor(type) {
-  return { owner: 'primary', vehicle: 'success', meeting: 'info', payment: 'warning', flag: 'danger', driver: 'secondary' }[type] || 'secondary';
+  return {
+    owner: 'primary', vehicle: 'success', meeting: 'info',
+    payment: 'warning', flag: 'danger', driver: 'secondary',
+  }[type] || 'secondary';
 }
 
-function _initPaymentsChart() {
+function _initPaymentsChart(paymentList) {
   const ctx = document.getElementById('paymentsChart');
   if (!ctx) return;
   if (_paymentsChart) _paymentsChart.destroy();
 
-  // Build per-month paid/pending from data
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months         = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const paidByMonth    = new Array(12).fill(0);
   const pendingByMonth = new Array(12).fill(0);
 
-  payments.forEach(p => {
-    const m = new Date(p.date + 'T00:00:00').getMonth();
-    if (p.status === 'paid')    paidByMonth[m]    += p.amount;
-    else                         pendingByMonth[m] += p.amount;
+  paymentList.forEach(p => {
+    const m = new Date((p.date || '') + 'T00:00:00').getMonth();
+    if (Number.isInteger(m)) {
+      if (p.status === 'paid') paidByMonth[m]    += p.amount;
+      else                     pendingByMonth[m] += p.amount;
+    }
   });
 
   _paymentsChart = new Chart(ctx, {

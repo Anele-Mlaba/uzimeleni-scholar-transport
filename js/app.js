@@ -2,7 +2,7 @@
 // APP — Uzimeleni Scholar Transport System
 // ============================================================
 
-const ALL_SECTIONS = ['dashboard', 'owners', 'vehicles', 'drivers', 'meetings', 'payments', 'flags'];
+const ALL_SECTIONS = ['dashboard', 'owners', 'vehicles', 'drivers', 'meetings', 'payments', 'flags', 'documents'];
 
 const NAV_ITEMS = [
   { section: 'dashboard', icon: 'bi-grid-fill',          label: 'Dashboard'          },
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { section: 'meetings',  icon: 'bi-calendar-event-fill', label: 'Meetings'           },
   { section: 'payments',  icon: 'bi-cash-coin',           label: 'Payments'           },
   { section: 'flags',     icon: 'bi-flag-fill',           label: 'Flags / Compliance' },
+  { section: 'documents', icon: 'bi-folder-fill',         label: 'Documents'          },
 ];
 
 // ---- Init -----------------------------------------------
@@ -23,16 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
   _bindSidebarToggle();
   _bindPasswordToggle();
 
-  // Always boot the public site (counters, nav, committee, contact form)
   initPublicSite();
 
   const user = getCurrentUser();
   if (user) {
-    // Returning session — go straight to app
     _hidePublicSite();
     _showApp(user);
   }
-  // Otherwise public site is already visible (default)
 });
 
 // ---- Visibility toggles ---------------------------------
@@ -40,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function _hidePublicSite() {
   const pub = document.getElementById('public-site');
   if (pub) pub.style.display = 'none';
-  // Remove scroll listener side-effects
   window.scrollTo(0, 0);
 }
 
@@ -48,14 +45,13 @@ function showPublicSiteFromApp() {
   const pub = document.getElementById('public-site');
   if (pub) pub.style.display = 'block';
   document.getElementById('app-page').style.display = 'none';
-  initPublicSite(); // re-init so counters animate again
+  initPublicSite();
 }
 
 function _showApp(user) {
   document.getElementById('app-page').style.display = 'flex';
   _renderNavbar(user);
   _renderSidebar(user);
-  // Navigate to first section the user can actually access
   const first = ALL_SECTIONS.find(s => canAccess(s));
   navigateTo(first || 'dashboard');
 }
@@ -99,7 +95,7 @@ async function navigateTo(section) {
     dashboard: 'Dashboard',    owners: 'Owners Management',
     vehicles:  'Vehicles',     drivers: 'Drivers',
     meetings:  'Meetings',     payments: 'Payments',
-    flags:     'Flags / Compliance',
+    flags:     'Flags / Compliance', documents: 'Documents',
   };
   document.getElementById('page-title').textContent = titles[section] || section;
 
@@ -116,6 +112,7 @@ async function navigateTo(section) {
     meetings:  renderMeetings,
     payments:  renderPayments,
     flags:     renderFlags,
+    documents: renderDocuments,
   };
   if (renderers[section]) await renderers[section]();
 
@@ -131,25 +128,30 @@ function _bindLoginForm() {
   const form = document.getElementById('login-form');
   if (!form) return;
 
-  form.addEventListener('submit', e => {
+  form.addEventListener('submit', async e => {
     e.preventDefault();
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value;
-    const errorEl  = document.getElementById('login-error');
+    const id_number = document.getElementById('login-idnumber').value.trim();
+    const password  = document.getElementById('login-password').value;
+    const errorEl   = document.getElementById('login-error');
 
-    const user = login(username, password);
+    const submitBtn = form.querySelector('[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in…';
+
+    const user = await login(id_number, password);
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Sign In';
+
     if (user) {
       errorEl.style.display = 'none';
       form.reset();
-
-      // Close modal if open
       const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
       if (modal) modal.hide();
-
       _hidePublicSite();
       _showApp(user);
     } else {
-      errorEl.textContent   = 'Invalid username or password. Please try again.';
+      errorEl.textContent   = 'Invalid ID number or password. Please try again.';
       errorEl.style.display = 'block';
       document.getElementById('login-password').value = '';
     }
@@ -160,7 +162,6 @@ function _bindSignupForm() {
   const form = document.getElementById('signup-form');
   if (!form) return;
 
-  // Live password-match feedback
   const pwField  = document.getElementById('signup-password');
   const pw2Field = document.getElementById('signup-confirm');
 
@@ -173,21 +174,31 @@ function _bindSignupForm() {
   pwField.addEventListener('input',  checkMatch);
   pw2Field.addEventListener('input', checkMatch);
 
-  // Live strength meter
   pwField.addEventListener('input', () => _updateStrength(pwField.value));
 
-  // Submit
-  form.addEventListener('submit', e => {
+  form.addEventListener('submit', async e => {
     e.preventDefault();
     checkMatch();
     form.classList.add('was-validated');
     if (!form.checkValidity()) return;
 
-    const result = register({
-      idNumber: document.getElementById('signup-idnumber').value,
-      username: document.getElementById('signup-username').value,
-      password: document.getElementById('signup-password').value,
+    const submitBtn = form.querySelector('[type="submit"]') ||
+                      document.querySelector('[form="signup-form"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating account…';
+    }
+
+    const result = await register({
+      id_number: document.getElementById('signup-idnumber').value.trim(),
+      name:      document.getElementById('signup-name').value.trim(),
+      password:  document.getElementById('signup-password').value,
     });
+
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="bi bi-person-check me-2"></i>Create Account';
+    }
 
     if (!result.success) {
       document.getElementById('signup-error').textContent   = result.error;
@@ -195,7 +206,6 @@ function _bindSignupForm() {
       return;
     }
 
-    // Success — reset, close, switch to login modal
     form.reset();
     form.classList.remove('was-validated');
     document.getElementById('signup-error').style.display = 'none';
@@ -204,7 +214,6 @@ function _bindSignupForm() {
     bootstrap.Modal.getInstance(document.getElementById('signupModal')).hide();
     showToast(`Account created! Welcome, ${result.user.name}. Please sign in.`, 'success');
 
-    // Auto-open login modal after a beat
     setTimeout(() => {
       bootstrap.Modal.getOrCreateInstance(document.getElementById('loginModal')).show();
     }, 400);
@@ -223,7 +232,7 @@ function _updateStrength(pw) {
   if (/[^A-Za-z0-9]/.test(pw))  score++;
 
   const levels = [
-    { pct: 0,   cls: '',        text: ''          },
+    { pct: 0,   cls: '',           text: ''       },
     { pct: 25,  cls: 'bg-danger',  text: 'Weak'   },
     { pct: 50,  cls: 'bg-warning', text: 'Fair'   },
     { pct: 75,  cls: 'bg-info',    text: 'Good'   },
@@ -231,10 +240,10 @@ function _updateStrength(pw) {
   ];
 
   const lvl = levels[score];
-  bar.style.width        = lvl.pct + '%';
-  bar.className          = `progress-bar ${lvl.cls}`;
-  label.textContent      = lvl.text;
-  label.className        = `small ${score >= 3 ? 'text-success' : score >= 2 ? 'text-warning' : 'text-danger'}`;
+  bar.style.width   = lvl.pct + '%';
+  bar.className     = `progress-bar ${lvl.cls}`;
+  label.textContent = lvl.text;
+  label.className   = `small ${score >= 3 ? 'text-success' : score >= 2 ? 'text-warning' : 'text-danger'}`;
 }
 
 function _bindLogout() {
@@ -242,7 +251,7 @@ function _bindLogout() {
   if (!btn) return;
   btn.addEventListener('click', () => {
     if (confirm('Are you sure you want to log out?')) {
-      logout();           // clears localStorage + reloads page
+      logout();
     }
   });
 }

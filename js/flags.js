@@ -4,7 +4,7 @@
 
 async function renderFlags() {
   showLoading('flags-content');
-  await simulateDelay(400);
+  await Promise.all([refreshOwners(), refreshMeetings(), refreshPayments()]);
 
   const flaggedList = getFlags();
 
@@ -40,9 +40,8 @@ async function renderFlags() {
           const unpaidAmt = payments
             .filter(p => p.ownerId === f.owner.id && p.status === 'pending')
             .reduce((s, p) => s + p.amount, 0);
-          const absentCount = meetings.reduce((count, m) => {
-            const att = m.attendance.find(a => a.ownerId === f.owner.id);
-            return count + ((!att || att.status === 'absent') ? 1 : 0);
+          const absentCount = getMeetings().reduce((count, m) => {
+            return count + ((m.absentees || []).some(a => a.idNumber === f.owner.idNumber) ? 1 : 0);
           }, 0);
 
           return `

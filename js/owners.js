@@ -2,12 +2,12 @@
 // OWNERS — Uzimeleni Scholar Transport System
 // ============================================================
 
-let _editOwnerId   = null;
-let _ownerSearch   = '';
+let _editOwnerId = null;
+let _ownerSearch = '';
 
 async function renderOwners() {
   showLoading('owners-content');
-  await simulateDelay(300);
+  await refreshOwners();
 
   const canManage = hasRole('chairperson');
 
@@ -63,18 +63,16 @@ function renderOwnersTable() {
   const canManage = hasRole('chairperson');
   let list        = getOwners();
 
-  // Owner role: see only own record
   if (user && user.role === 'owner') {
     list = list.filter(o => o.id === user.ownerId);
   }
 
-  // Search filter
   if (_ownerSearch.trim()) {
     const term = _ownerSearch.toLowerCase();
     list = list.filter(o =>
-      o.name.toLowerCase().includes(term) ||
-      o.surname.toLowerCase().includes(term) ||
-      o.idNumber.includes(term)
+      (o.name    || '').toLowerCase().includes(term) ||
+      (o.surname || '').toLowerCase().includes(term) ||
+      (o.idNumber || '').includes(term)
     );
   }
 
@@ -102,10 +100,12 @@ function renderOwnersTable() {
       <td class="text-center">${statusBadge(o.status)}</td>
       ${canManage ? `
         <td class="text-center">
-          <button class="btn btn-sm btn-outline-primary me-1" title="Edit" onclick="openEditOwnerModal(${o.id})">
+          <button class="btn btn-sm btn-outline-primary me-1" title="Edit"
+                  onclick="openEditOwnerModal('${o.id}')">
             <i class="bi bi-pencil"></i>
           </button>
-          <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="deleteOwnerConfirm(${o.id})">
+          <button class="btn btn-sm btn-outline-danger" title="Delete"
+                  onclick="deleteOwnerConfirm('${o.id}')">
             <i class="bi bi-trash"></i>
           </button>
         </td>` : ''}
@@ -140,6 +140,7 @@ function openEditOwnerModal(id) {
   document.getElementById('owner-idnumber').value = o.idNumber;
   document.getElementById('owner-phone').value    = o.phone;
   document.getElementById('owner-email').value    = o.email || '';
+  document.getElementById('owner-address').value  = o.address || '';
   document.getElementById('owner-status').value   = o.status;
   document.getElementById('owner-cars').value     = o.numberOfCars;
 
@@ -152,33 +153,46 @@ async function saveOwner() {
   if (!form.checkValidity()) return;
 
   const data = {
-    name:        document.getElementById('owner-name').value.trim(),
-    surname:     document.getElementById('owner-surname').value.trim(),
-    idNumber:    document.getElementById('owner-idnumber').value.trim(),
-    phone:       document.getElementById('owner-phone').value.trim(),
-    email:       document.getElementById('owner-email').value.trim(),
-    status:      document.getElementById('owner-status').value,
+    name:         document.getElementById('owner-name').value.trim(),
+    surname:      document.getElementById('owner-surname').value.trim(),
+    idNumber:     document.getElementById('owner-idnumber').value.trim(),
+    phone:        document.getElementById('owner-phone').value.trim(),
+    email:        document.getElementById('owner-email').value.trim(),
+    address:      document.getElementById('owner-address').value.trim(),
+    status:       document.getElementById('owner-status').value,
     numberOfCars: parseInt(document.getElementById('owner-cars').value) || 0,
   };
 
-  if (_editOwnerId) {
-    updateOwner(_editOwnerId, data);
-    showToast('Owner updated successfully', 'success');
-  } else {
-    addOwner(data);
-    showToast('Owner added successfully', 'success');
-  }
+  const saveBtn = document.querySelector('#ownerModal .btn-primary');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving…'; }
 
-  bootstrap.Modal.getInstance(document.getElementById('ownerModal')).hide();
-  renderOwnersTable();
+  try {
+    if (_editOwnerId) {
+      await updateOwner(_editOwnerId, data);
+      showToast('Owner updated successfully', 'success');
+    } else {
+      await addOwner(data);
+      showToast('Owner added successfully', 'success');
+    }
+    bootstrap.Modal.getInstance(document.getElementById('ownerModal')).hide();
+    renderOwnersTable();
+  } catch (err) {
+    showToast(err.message || 'Failed to save owner.', 'danger');
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Save Owner'; }
+  }
 }
 
-function deleteOwnerConfirm(id) {
+async function deleteOwnerConfirm(id) {
   const o = getOwnerById(id);
   if (!o) return;
-  if (confirmAction(`Delete owner "${o.name} ${o.surname}"?\nThis action cannot be undone.`)) {
-    deleteOwner(id);
+  if (!confirmAction(`Delete owner "${o.name} ${o.surname}"?\nThis action cannot be undone.`)) return;
+
+  try {
+    await deleteOwner(id);
     showToast(`${o.name} ${o.surname} deleted`, 'warning');
     renderOwnersTable();
+  } catch (err) {
+    showToast(err.message || 'Failed to delete owner.', 'danger');
   }
 }

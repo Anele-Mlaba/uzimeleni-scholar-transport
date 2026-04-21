@@ -2,55 +2,60 @@
 // AUTH — Uzimeleni Scholar Transport System
 // ============================================================
 
-function login(username, password) {
-  const user = MOCK_USERS.find(u => u.username === username && u.password === password);
-  if (user) {
-    localStorage.setItem('ust_user', JSON.stringify(user));
-    return user;
-  }
-  return null;
+async function login(id_number, password) {
+  const result = await AuthAPI.login(id_number, password);
+  if (!result.ok) return null;
+
+  const token   = result.data.token;
+  const payload = _decodeJwt(token);
+
+  const user = {
+    id_number: payload?.sub || id_number,
+    token,
+    name: payload?.name || id_number,
+    role: payload?.role || 'owner',
+  };
+
+  localStorage.setItem('ust_user', JSON.stringify(user));
+  return user;
 }
 
-function logout() {
+async function logout() {
+  try { await AuthAPI.logout(); } catch (_) { /* ignore */ }
   localStorage.removeItem('ust_user');
   window.location.reload();
 }
 
-function register({ username, password, idNumber }) {
-  // Verify the ID number belongs to a registered association member
-  const owner = owners.find(o => o.idNumber === idNumber.trim());
-  if (!owner) {
+async function register({ id_number, name, password }) {
+  const result = await AuthAPI.register(id_number, name, password);
+  if (!result.ok) {
     return {
       success: false,
-      error: 'Your ID number is not registered as a member of this association. Please contact the chairperson to join.',
+      error: result.data?.error || 'Registration failed. Please try again.',
     };
   }
 
-  // Prevent duplicate accounts for the same owner
-  if (MOCK_USERS.find(u => u.ownerId === owner.id)) {
-    return { success: false, error: 'An account already exists for this ID number. Please sign in instead.' };
-  }
-
-  if (MOCK_USERS.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-    return { success: false, error: 'That username is already taken. Please choose another.' };
-  }
-
-  const newUser = {
-    id:       MOCK_USERS.length + 1,
-    username: username.trim(),
-    password: password,
-    role:     'owner',
-    name:     `${owner.name} ${owner.surname}`,
-    ownerId:  owner.id,
-  };
-
-  MOCK_USERS.push(newUser);
-  return { success: true, user: newUser };
+  return { success: true, user: { name, id_number } };
 }
 
 function getCurrentUser() {
-  const stored = localStorage.getItem('ust_user');
-  return stored ? JSON.parse(stored) : null;
+  try {
+    const stored = localStorage.getItem('ust_user');
+    if (!stored) return null;
+    const user = JSON.parse(stored);
+    // Always re-derive name/role from the JWT so stale stored values never win
+    if (user.token) {
+      const payload = _decodeJwt(user.token);
+      if (payload) {
+        user.id_number = payload.sub    || user.id_number;
+        user.name      = payload.name   || user.name;
+        user.role      = payload.role   || user.role;
+      }
+    }
+    return user;
+  } catch {
+    return null;
+  }
 }
 
 function isLoggedIn() {
@@ -67,12 +72,23 @@ function canAccess(section) {
   if (!user) return false;
 
   const access = {
-    chairperson: ['dashboard', 'owners', 'vehicles', 'drivers', 'meetings', 'payments', 'flags'],
+    chairperson: ['dashboard', 'owners', 'vehicles', 'drivers', 'meetings', 'payments', 'flags', 'documents'],
     secretary:   ['dashboard', 'meetings'],
     treasurer:   ['dashboard', 'payments'],
     security:    ['vehicles', 'flags'],
-    owner:       ['vehicles', 'payments', 'meetings'],
+    owner:       ['vehicles', 'payments', 'meetings', 'documents'],
   };
 
   return (access[user.role] || []).includes(section);
+}
+
+// ── JWT helpers ───────────────────────────────────────────────
+
+function _decodeJwt(token) {
+  try {
+    const payload = token.split('.')[1];
+    return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+  } catch {
+    return null;
+  }
 }

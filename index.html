@@ -597,11 +597,12 @@
 
         <form id="login-form" novalidate>
           <div class="mb-3">
-            <label class="form-label fw-medium" for="login-username">Username</label>
+            <label class="form-label fw-medium" for="login-idnumber">ID Number</label>
             <div class="input-group">
-              <span class="input-group-text bg-white"><i class="bi bi-person text-muted"></i></span>
-              <input type="text" id="login-username" class="form-control border-start-0"
-                     placeholder="Enter your username" autocomplete="username" required>
+              <span class="input-group-text bg-white"><i class="bi bi-person-vcard text-muted"></i></span>
+              <input type="text" id="login-idnumber" class="form-control border-start-0 font-monospace"
+                     placeholder="13-digit South African ID number" autocomplete="username"
+                     pattern="\d{13}" maxlength="13" required>
             </div>
           </div>
           <div class="mb-4">
@@ -669,24 +670,22 @@
             <label class="form-label fw-medium" for="signup-idnumber">ID Number *</label>
             <div class="input-group">
               <span class="input-group-text bg-white"><i class="bi bi-person-vcard text-muted"></i></span>
-              <input type="text" id="signup-idnumber" class="form-control border-start-0"
-                     placeholder="Enter your South African ID number" autocomplete="off"
+              <input type="text" id="signup-idnumber" class="form-control border-start-0 font-monospace"
+                     placeholder="13-digit South African ID number" autocomplete="off"
                      pattern="\d{13}" maxlength="13" required>
             </div>
-            <div class="form-text">Your 13-digit South African ID number. Used to verify your membership.</div>
+            <div class="form-text">Your ID number must already be registered with the association.</div>
             <div class="invalid-feedback">Please enter a valid 13-digit ID number.</div>
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-medium" for="signup-username">Username *</label>
+            <label class="form-label fw-medium" for="signup-name">Full Name *</label>
             <div class="input-group">
-              <span class="input-group-text bg-white"><i class="bi bi-at text-muted"></i></span>
-              <input type="text" id="signup-username" class="form-control border-start-0"
-                     placeholder="Choose a username" autocomplete="off"
-                     pattern="[A-Za-z0-9_]{3,}" required>
+              <span class="input-group-text bg-white"><i class="bi bi-person text-muted"></i></span>
+              <input type="text" id="signup-name" class="form-control border-start-0"
+                     placeholder="Enter your full name" autocomplete="name" required>
             </div>
-            <div class="form-text">Letters, numbers and underscores. At least 3 characters.</div>
-            <div class="invalid-feedback">Minimum 3 characters, no spaces.</div>
+            <div class="invalid-feedback">Required.</div>
           </div>
 
           <div class="mb-3">
@@ -808,6 +807,10 @@
         <div id="flags-content"></div>
       </div>
 
+      <div id="section-documents" class="section" style="display:none;">
+        <div id="documents-content"></div>
+      </div>
+
     </main>
   </div>
 
@@ -860,6 +863,10 @@
               <label class="form-label fw-medium">Email</label>
               <input type="email" class="form-control" id="owner-email" placeholder="optional">
             </div>
+            <div class="col-12">
+              <label class="form-label fw-medium">Address</label>
+              <input type="text" class="form-control" id="owner-address" placeholder="e.g. 12 Mthembu Street, Umlazi">
+            </div>
             <div class="col-md-6">
               <label class="form-label fw-medium">Status</label>
               <select class="form-select" id="owner-status">
@@ -908,9 +915,21 @@
             <div class="invalid-feedback">Please select an owner.</div>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-medium">Car Type *</label>
-            <input type="text" class="form-control" id="vehicle-type"
-                   required placeholder="e.g. Toyota Quantum">
+            <label class="form-label fw-medium">Make *</label>
+            <input type="text" class="form-control" id="vehicle-make"
+                   required placeholder="e.g. Toyota">
+            <div class="invalid-feedback">Required.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Model *</label>
+            <input type="text" class="form-control" id="vehicle-model"
+                   required placeholder="e.g. Quantum">
+            <div class="invalid-feedback">Required.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Year *</label>
+            <input type="number" class="form-control" id="vehicle-year"
+                   required placeholder="e.g. 2020" min="1990" max="2099">
             <div class="invalid-feedback">Required.</div>
           </div>
           <div class="mb-3">
@@ -918,6 +937,12 @@
             <select class="form-select" id="vehicle-status">
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Assigned Driver</label>
+            <select class="form-select" id="vehicle-driver">
+              <option value="">No driver assigned</option>
             </select>
           </div>
         </form>
@@ -960,6 +985,16 @@
               <div class="invalid-feedback">Must be 13 digits.</div>
             </div>
             <div class="col-md-6">
+              <label class="form-label fw-medium">License Number *</label>
+              <input type="text" class="form-control" id="driver-license"
+                     required placeholder="e.g. PDP1234567">
+              <div class="invalid-feedback">Required.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">License Expiry</label>
+              <input type="date" class="form-control" id="driver-license-expiry">
+            </div>
+            <div class="col-md-6">
               <label class="form-label fw-medium">Phone *</label>
               <input type="tel" class="form-control" id="driver-phone" required>
               <div class="invalid-feedback">Required.</div>
@@ -969,6 +1004,12 @@
               <select class="form-select" id="driver-status">
                 <option value="Active">Active</option>
                 <option value="Suspended">Suspended</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-medium">Owner</label>
+              <select class="form-select" id="driver-owner">
+                <option value="">Select owner…</option>
               </select>
             </div>
           </div>
@@ -1011,6 +1052,12 @@
               <input type="time" class="form-control" id="meeting-start-time" required>
               <div class="invalid-feedback">Required.</div>
             </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Location *</label>
+            <input type="text" class="form-control" id="meeting-location" required
+                   placeholder="e.g. Community Hall, Umlazi">
+            <div class="invalid-feedback">Required.</div>
           </div>
           <div class="mb-3">
             <label class="form-label fw-medium">Notes / Agenda</label>
@@ -1068,9 +1115,64 @@
 </div>
 
 
+<!-- Document Upload Modal -->
+<div class="modal fade" id="docUploadModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Upload Document</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Type label -->
+        <div class="mb-3">
+          <div class="text-muted small fw-medium mb-1">Document Type</div>
+          <div class="fw-semibold text-primary" id="doc-upload-type-label"></div>
+        </div>
+
+        <!-- Entity (vehicle / driver) -->
+        <div class="mb-3" id="doc-upload-entity-row">
+          <div class="text-muted small fw-medium mb-1">For</div>
+          <div class="fw-medium" id="doc-upload-entity-value"></div>
+        </div>
+
+        <!-- File input -->
+        <div class="mb-2">
+          <label class="form-label fw-medium" for="doc-file-input">Select File *</label>
+          <input type="file" class="form-control" id="doc-file-input"
+                 accept=".pdf,.jpg,.jpeg,.png"
+                 onchange="_onDocFileChange(this)">
+          <div class="form-text">Accepted: PDF, JPG, PNG — Max 10 MB.</div>
+        </div>
+
+        <!-- Selected file preview -->
+        <div class="d-flex align-items-center gap-2 mt-2 small text-muted"
+             id="doc-file-selected" style="display:none!important">
+          <i class="bi bi-file-earmark-check text-success fs-5"></i>
+          <span id="doc-file-name" class="fw-medium"></span>
+          <span class="text-muted" id="doc-file-size"></span>
+        </div>
+
+        <!-- Error -->
+        <div class="alert alert-danger py-2 small mt-3" id="doc-upload-error" style="display:none"></div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="doc-save-btn" onclick="saveDocument()">
+          <i class="bi bi-cloud-upload me-1"></i>Upload
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- Scripts — order matters -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="js/api.js"></script>
 <script src="js/data.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/utils.js"></script>
@@ -1082,6 +1184,7 @@
 <script src="js/meetings.js"></script>
 <script src="js/payments.js"></script>
 <script src="js/flags.js"></script>
+<script src="js/documents.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

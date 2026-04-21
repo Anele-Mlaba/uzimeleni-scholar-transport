@@ -46,7 +46,7 @@ function _elapsedLabel(m) {
 
 async function renderMeetings() {
   showLoading('meetings-content');
-  await simulateDelay(300);
+  await Promise.all([refreshMeetings(), refreshOwners()]);
 
   const canManage = hasRole('chairperson', 'secretary');
 
@@ -75,9 +75,8 @@ function renderMeetingsList() {
   }
 
   container.innerHTML = list.map(m => {
-    const presentCount = m.attendance.filter(a => a.status === 'present').length;
-    const lateCount    = m.attendance.filter(a => a.status === 'late').length;
-    const absentCount  = m.attendance.filter(a => a.status === 'absent').length;
+    const presentCount = (m.attendees || []).length;
+    const absentCount  = (m.absentees || []).length;
     const isPast       = new Date(m.date) < new Date();
     const locked       = _isAttendanceLocked(m);
 
@@ -97,14 +96,12 @@ function renderMeetingsList() {
               <div class="text-muted small mb-2">
                 <i class="bi bi-calendar3 me-1"></i>${formatDate(m.date)}
                 ${m.startTime ? `<span class="ms-2"><i class="bi bi-clock me-1"></i>${m.startTime}</span>` : ''}
+                ${m.location  ? `<span class="ms-2"><i class="bi bi-geo-alt me-1"></i>${escapeHtml(m.location)}</span>` : ''}
               </div>
               ${m.notes ? `<p class="text-muted small mb-2 fst-italic">${escapeHtml(m.notes)}</p>` : ''}
               <div class="d-flex flex-wrap gap-2">
                 <span class="badge bg-success-subtle text-success">
                   <i class="bi bi-check-circle me-1"></i>${presentCount} Present
-                </span>
-                <span class="badge bg-warning-subtle text-warning">
-                  <i class="bi bi-clock me-1"></i>${lateCount} Late
                 </span>
                 <span class="badge bg-danger-subtle text-danger">
                   <i class="bi bi-x-circle me-1"></i>${absentCount} Absent
@@ -112,23 +109,25 @@ function renderMeetingsList() {
               </div>
             </div>
             <div class="d-flex gap-2 flex-shrink-0 align-items-start flex-wrap justify-content-end">
-              <button class="btn btn-sm btn-outline-info" onclick="openAttendanceModal(${m.id})">
+              <button class="btn btn-sm btn-outline-info" onclick="openAttendanceModal('${m.id}')">
                 <i class="bi bi-person-check me-1"></i>${canManage && !locked ? 'Attendance' : 'View'}
               </button>
               ${m.minutes
-                ? `<button class="btn btn-sm btn-outline-primary" onclick="openMinutesModal(${m.id})">
+                ? `<button class="btn btn-sm btn-outline-primary" onclick="openMinutesModal('${m.id}')">
                      <i class="bi bi-file-text me-1"></i>Minutes
                    </button>`
                 : canManage && !locked
-                  ? `<button class="btn btn-sm btn-outline-secondary" onclick="openMinutesModal(${m.id})">
+                  ? `<button class="btn btn-sm btn-outline-secondary" onclick="openMinutesModal('${m.id}')">
                        <i class="bi bi-file-text me-1"></i>Add Minutes
                      </button>`
                   : ''}
               ${canManage ? `
-                <button class="btn btn-sm btn-outline-primary" title="Edit" onclick="openEditMeetingModal(${m.id})">
+                <button class="btn btn-sm btn-outline-primary" title="Edit"
+                        onclick="openEditMeetingModal('${m.id}')">
                   <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="deleteMeetingConfirm(${m.id})">
+                <button class="btn btn-sm btn-outline-danger" title="Delete"
+                        onclick="deleteMeetingConfirm('${m.id}')">
                   <i class="bi bi-trash"></i>
                 </button>` : ''}
             </div>
@@ -162,7 +161,8 @@ function openEditMeetingModal(id) {
   document.getElementById('meeting-title').value      = m.title;
   document.getElementById('meeting-date').value       = m.date;
   document.getElementById('meeting-start-time').value = m.startTime || '';
-  document.getElementById('meeting-notes').value      = m.notes || '';
+  document.getElementById('meeting-location').value   = m.location  || '';
+  document.getElementById('meeting-notes').value      = m.notes     || '';
   bootstrap.Modal.getOrCreateInstance(document.getElementById('meetingModal')).show();
 }
 
@@ -175,28 +175,41 @@ async function saveMeeting() {
     title:     document.getElementById('meeting-title').value.trim(),
     date:      document.getElementById('meeting-date').value,
     startTime: document.getElementById('meeting-start-time').value || null,
+    location:  document.getElementById('meeting-location').value.trim(),
     notes:     document.getElementById('meeting-notes').value.trim(),
   };
 
-  if (_editMeetingId) {
-    updateMeeting(_editMeetingId, data);
-    showToast('Meeting updated successfully', 'success');
-  } else {
-    addMeeting(data);
-    showToast('Meeting scheduled successfully', 'success');
-  }
+  const saveBtn = document.querySelector('#meetingModal .btn-primary');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving…'; }
 
-  bootstrap.Modal.getInstance(document.getElementById('meetingModal')).hide();
-  renderMeetingsList();
+  try {
+    if (_editMeetingId) {
+      await updateMeeting(_editMeetingId, data);
+      showToast('Meeting updated successfully', 'success');
+    } else {
+      await addMeeting(data);
+      showToast('Meeting scheduled successfully', 'success');
+    }
+    bootstrap.Modal.getInstance(document.getElementById('meetingModal')).hide();
+    renderMeetingsList();
+  } catch (err) {
+    showToast(err.message || 'Failed to save meeting.', 'danger');
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Save Meeting'; }
+  }
 }
 
-function deleteMeetingConfirm(id) {
+async function deleteMeetingConfirm(id) {
   const m = getMeetingById(id);
   if (!m) return;
-  if (confirmAction(`Delete meeting "${m.title}"?`)) {
-    deleteMeeting(id);
+  if (!confirmAction(`Delete meeting "${m.title}"?`)) return;
+
+  try {
+    await deleteMeeting(id);
     showToast('Meeting deleted', 'warning');
     renderMeetingsList();
+  } catch (err) {
+    showToast(err.message || 'Failed to delete meeting.', 'danger');
   }
 }
 
@@ -262,7 +275,6 @@ function openAttendanceModal(meetingId) {
 
   document.getElementById('attendance-body').innerHTML = html;
 
-  // Save button not used in this flow
   const saveBtn = document.getElementById('save-attendance-btn');
   if (saveBtn) saveBtn.style.display = 'none';
 
@@ -270,16 +282,25 @@ function openAttendanceModal(meetingId) {
 }
 
 function _renderAttendanceSummary(m) {
-  const ownersList = getOwners();
-  const present = [], late = [], absent = [];
+  const ownersList     = getOwners();
+  const attendeeNums   = new Set((m.attendees || []).map(a => a.idNumber));
+  const absenteeNums   = new Set((m.absentees || []).map(a => a.idNumber));
+
+  const present = [], absent = [], unmarked = [];
 
   ownersList.forEach(o => {
-    const att    = m.attendance.find(a => a.ownerId === o.id);
-    const status = att ? att.status : 'absent';
-    const label  = `${o.name} ${o.surname}`;
-    if (status === 'present')     present.push(label);
-    else if (status === 'late')   late.push(label);
-    else                          absent.push(label);
+    const label = `${o.name} ${o.surname}`;
+    if (attendeeNums.has(o.idNumber))      present.push(label);
+    else if (absenteeNums.has(o.idNumber)) absent.push(label);
+    else                                   unmarked.push(label);
+  });
+
+  // Also show attendees/absentees from the API that aren't in the local owners cache
+  (m.attendees || []).forEach(a => {
+    if (!ownersList.some(o => o.idNumber === a.idNumber)) present.push(a.name);
+  });
+  (m.absentees || []).forEach(a => {
+    if (!ownersList.some(o => o.idNumber === a.idNumber)) absent.push(a.name);
   });
 
   const chips = (arr, cls) => arr.length
@@ -295,17 +316,18 @@ function _renderAttendanceSummary(m) {
         <div>${chips(present, 'bg-success-subtle text-success')}</div>
       </div>
       <div>
-        <div class="small fw-semibold text-warning mb-2">
-          <i class="bi bi-clock me-1"></i>Late (${late.length})
-        </div>
-        <div>${chips(late, 'bg-warning-subtle text-warning')}</div>
-      </div>
-      <div>
         <div class="small fw-semibold text-danger mb-2">
           <i class="bi bi-x-circle me-1"></i>Absent (${absent.length})
         </div>
         <div>${chips(absent, 'bg-danger-subtle text-danger')}</div>
       </div>
+      ${unmarked.length ? `
+      <div>
+        <div class="small fw-semibold text-muted mb-2">
+          <i class="bi bi-dash-circle me-1"></i>Not Yet Marked (${unmarked.length})
+        </div>
+        <div>${chips(unmarked, 'bg-secondary-subtle text-secondary')}</div>
+      </div>` : ''}
     </div>`;
 }
 
@@ -323,8 +345,8 @@ function _searchAttendance(term) {
   if (!m) return;
 
   const matches = getOwners().filter(o =>
-    o.name.toLowerCase().includes(trimmed) ||
-    o.surname.toLowerCase().includes(trimmed)
+    (o.name    || '').toLowerCase().includes(trimmed) ||
+    (o.surname || '').toLowerCase().includes(trimmed)
   );
 
   if (matches.length === 0) {
@@ -332,17 +354,20 @@ function _searchAttendance(term) {
     return;
   }
 
+  const attendeeNums = new Set((m.attendees || []).map(a => a.idNumber));
+  const absenteeNums = new Set((m.absentees || []).map(a => a.idNumber));
+
   resultsEl.innerHTML = matches.map(o => {
-    const att    = m.attendance.find(a => a.ownerId === o.id);
-    const status = att ? att.status : 'absent';
+    const isPresent = attendeeNums.has(o.idNumber);
+    const isAbsent  = absenteeNums.has(o.idNumber);
 
     let right = '';
-    if (status === 'present') {
+    if (isPresent) {
       right = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Present</span>';
-    } else if (status === 'late') {
-      right = '<span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Late</span>';
+    } else if (isAbsent) {
+      right = '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Absent</span>';
     } else {
-      right = `<button class="btn btn-sm btn-primary" onclick="_markOwnerAttended(${o.id})">
+      right = `<button class="btn btn-sm btn-primary" onclick="_markOwnerAttended('${o.id}')">
                  <i class="bi bi-check2 me-1"></i>Mark Attended
                </button>`;
     }
@@ -359,21 +384,20 @@ function _markOwnerAttended(ownerId) {
   const m = getMeetingById(_attendanceMeetingId);
   if (!m || _isAttendanceLocked(m)) return;
 
-  const status = _isLateArrival(m) ? 'late' : 'present';
-  updateAttendance(_attendanceMeetingId, ownerId, status);
+  const isLate = _isLateArrival(m);
+  updateAttendance(_attendanceMeetingId, ownerId, true);
 
   const owner = getOwnerById(ownerId);
-  const name  = `${owner.name} ${owner.surname}`;
+  if (!owner) return;
+  const name = `${owner.name} ${owner.surname}`;
   showToast(
-    status === 'late' ? `${name} marked as Late` : `${name} marked Present`,
-    status === 'late' ? 'warning' : 'success'
+    isLate ? `${name} marked Present (late arrival)` : `${name} marked Present`,
+    isLate ? 'warning' : 'success'
   );
 
-  // Refresh search results to update button → badge
   const searchInput = document.getElementById('att-search');
   if (searchInput && searchInput.value.trim()) _searchAttendance(searchInput.value);
 
-  // Refresh attendance summary
   const fresh     = getMeetingById(_attendanceMeetingId);
   const summaryEl = document.getElementById('att-summary');
   if (summaryEl && fresh) summaryEl.innerHTML = _renderAttendanceSummary(fresh);
@@ -391,16 +415,10 @@ function openMinutesModal(meetingId) {
 
   document.getElementById('minutesModalTitle').textContent = `Minutes — ${m.title}`;
 
-  // Auto-build attendance lists from recorded attendance
-  const ownersList = getOwners();
-  const present = ownersList.filter(o => {
-    const att = m.attendance.find(a => a.ownerId === o.id);
-    return att && (att.status === 'present' || att.status === 'late');
-  });
-  const absent = ownersList.filter(o => {
-    const att = m.attendance.find(a => a.ownerId === o.id);
-    return !att || att.status === 'absent';
-  });
+  const ownersList   = getOwners();
+  const attendeeNums = new Set((m.attendees || []).map(a => a.idNumber));
+  const present = ownersList.filter(o => attendeeNums.has(o.idNumber));
+  const absent  = ownersList.filter(o => !attendeeNums.has(o.idNumber));
 
   const nameList = (arr) => arr.length
     ? `<div class="d-flex flex-column gap-1">${arr.map(o =>
@@ -481,14 +499,18 @@ function openMinutesModal(meetingId) {
   bootstrap.Modal.getOrCreateInstance(document.getElementById('minutesModal')).show();
 }
 
-function saveMinutes() {
+async function saveMinutes() {
   const m = getMeetingById(_minutesMeetingId);
   if (!m || _isAttendanceLocked(m)) return;
 
   const content = document.getElementById('minutes-content').value.trim();
-  updateMeeting(_minutesMeetingId, { minutes: content });
 
-  showToast('Minutes saved successfully', 'success');
-  bootstrap.Modal.getInstance(document.getElementById('minutesModal')).hide();
-  renderMeetingsList();
+  try {
+    await updateMeeting(_minutesMeetingId, { minutes: content });
+    showToast('Minutes saved successfully', 'success');
+    bootstrap.Modal.getInstance(document.getElementById('minutesModal')).hide();
+    renderMeetingsList();
+  } catch (err) {
+    showToast(err.message || 'Failed to save minutes.', 'danger');
+  }
 }

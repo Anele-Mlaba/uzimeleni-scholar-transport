@@ -509,3 +509,26 @@ body {
 /* ---- Smooth section transitions ---- */
 .pub-section { animation: sectionIn 0.25s ease both; }
 
+
+
+/* ================================================================
+   DOCUMENTS
+   ================================================================ */
+
+.doc-slot-label {
+  font-size: .7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #6c757d;
+  margin-bottom: .5rem;
+}
+
+.doc-uploaded-card {
+  background: #f8f9fa;
+  transition: background .15s;
+}
+
+.doc-uploaded-card:hover {
+  background: #e9ecef;
+}

@@ -6,7 +6,7 @@ let _editVehicleId = null;
 
 async function renderVehicles() {
   showLoading('vehicles-content');
-  await simulateDelay(300);
+  await Promise.all([refreshVehicles(), refreshOwners(), refreshDrivers()]);
 
   const canManage = hasRole('chairperson');
 
@@ -25,7 +25,7 @@ async function renderVehicles() {
               <tr>
                 <th>Registration</th>
                 <th>Owner</th>
-                <th>Type</th>
+                <th>Make &amp; Model</th>
                 <th class="text-center">Status</th>
                 ${canManage ? '<th class="text-center">Actions</th>' : ''}
               </tr>
@@ -67,25 +67,53 @@ function renderVehiclesTable() {
     <tr>
       <td><span class="fw-medium font-monospace">${escapeHtml(v.registrationNumber)}</span></td>
       <td>${escapeHtml(getOwnerName(v.ownerId))}</td>
-      <td>${escapeHtml(v.carType)}</td>
+      <td>${escapeHtml(v.carType || `${v.make || ''} ${v.model || ''}`.trim())}</td>
       <td class="text-center">${statusBadge(v.status)}</td>
       ${canManage ? `
         <td class="text-center">
-          <button class="btn btn-sm btn-outline-primary me-1" title="Edit" onclick="openEditVehicleModal(${v.id})">
+          <button class="btn btn-sm btn-outline-primary me-1" title="Edit"
+                  onclick="openEditVehicleModal('${v.id}')">
             <i class="bi bi-pencil"></i>
           </button>
-          <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="deleteVehicleConfirm(${v.id})">
+          <button class="btn btn-sm btn-outline-danger" title="Delete"
+                  onclick="deleteVehicleConfirm('${v.id}')">
             <i class="bi bi-trash"></i>
           </button>
         </td>` : ''}
     </tr>`).join('');
 }
 
-function _populateOwnerSelect() {
+function _populateOwnerSelect(selectedOwnerId) {
   const sel = document.getElementById('vehicle-owner');
   if (!sel) return;
   sel.innerHTML = '<option value="">Select Owner…</option>' +
-    getOwners().map(o => `<option value="${o.id}">${escapeHtml(o.name)} ${escapeHtml(o.surname)}</option>`).join('');
+    getOwners().map(o =>
+      `<option value="${o.id}" ${String(o.id) === String(selectedOwnerId) ? 'selected' : ''}>
+        ${escapeHtml(o.name)} ${escapeHtml(o.surname)}
+      </option>`
+    ).join('');
+}
+
+function _populateVehicleDriverSelect(selectedDriverId) {
+  const sel = document.getElementById('vehicle-driver');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">No driver assigned</option>' +
+    getDrivers().map(d =>
+      `<option value="${d.id}" ${String(d.id) === String(selectedDriverId) ? 'selected' : ''}>
+        ${escapeHtml(d.name)} ${escapeHtml(d.surname)}
+      </option>`
+    ).join('');
+}
+
+function _setVehicleFieldsLocked(locked) {
+  ['vehicle-reg', 'vehicle-make', 'vehicle-model', 'vehicle-year'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.readOnly = locked;
+  });
+  ['vehicle-owner', 'vehicle-status'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = locked;
+  });
 }
 
 function openAddVehicleModal() {
@@ -94,7 +122,9 @@ function openAddVehicleModal() {
   const form = document.getElementById('vehicle-form');
   form.reset();
   form.classList.remove('was-validated');
-  _populateOwnerSelect();
+  _setVehicleFieldsLocked(false);
+  _populateOwnerSelect(null);
+  _populateVehicleDriverSelect('');
   bootstrap.Modal.getOrCreateInstance(document.getElementById('vehicleModal')).show();
 }
 
@@ -103,14 +133,19 @@ function openEditVehicleModal(id) {
   const v = getVehicleById(id);
   if (!v) return;
 
-  document.getElementById('vehicleModalTitle').textContent = 'Edit Vehicle';
+  document.getElementById('vehicleModalTitle').textContent = 'Assign Driver';
   const form = document.getElementById('vehicle-form');
   form.classList.remove('was-validated');
-  _populateOwnerSelect();
+
+  // Lock all fields — PUT only allows driver_id to change
+  _setVehicleFieldsLocked(true);
+  _populateOwnerSelect(v.ownerId);
   document.getElementById('vehicle-reg').value    = v.registrationNumber;
-  document.getElementById('vehicle-owner').value  = v.ownerId;
-  document.getElementById('vehicle-type').value   = v.carType;
+  document.getElementById('vehicle-make').value   = v.make  || '';
+  document.getElementById('vehicle-model').value  = v.model || '';
+  document.getElementById('vehicle-year').value   = v.year  || '';
   document.getElementById('vehicle-status').value = v.status;
+  _populateVehicleDriverSelect(v.driverId || '');
 
   bootstrap.Modal.getOrCreateInstance(document.getElementById('vehicleModal')).show();
 }
@@ -120,31 +155,49 @@ async function saveVehicle() {
   form.classList.add('was-validated');
   if (!form.checkValidity()) return;
 
-  const data = {
-    registrationNumber: document.getElementById('vehicle-reg').value.trim().toUpperCase(),
-    ownerId:            parseInt(document.getElementById('vehicle-owner').value),
-    carType:            document.getElementById('vehicle-type').value.trim(),
-    status:             document.getElementById('vehicle-status').value,
-  };
+  const saveBtn = document.querySelector('#vehicleModal .btn-primary');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving…'; }
 
-  if (_editVehicleId) {
-    updateVehicle(_editVehicleId, data);
-    showToast('Vehicle updated successfully', 'success');
-  } else {
-    addVehicle(data);
-    showToast('Vehicle added successfully', 'success');
+  try {
+    if (_editVehicleId) {
+      // PUT only updates driver_id
+      await updateVehicle(_editVehicleId, {
+        driverId: document.getElementById('vehicle-driver').value,
+      });
+      showToast('Driver assigned successfully', 'success');
+    } else {
+      await addVehicle({
+        registrationNumber: document.getElementById('vehicle-reg').value.trim().toUpperCase(),
+        ownerId:            document.getElementById('vehicle-owner').value,
+        make:               document.getElementById('vehicle-make').value.trim(),
+        model:              document.getElementById('vehicle-model').value.trim(),
+        year:               document.getElementById('vehicle-year').value.trim(),
+        status:             document.getElementById('vehicle-status').value,
+        driverId:           document.getElementById('vehicle-driver').value,
+      });
+      showToast('Vehicle added successfully', 'success');
+    }
+    _setVehicleFieldsLocked(false);
+    bootstrap.Modal.getInstance(document.getElementById('vehicleModal')).hide();
+    renderVehiclesTable();
+  } catch (err) {
+    showToast(err.message || 'Failed to save vehicle.', 'danger');
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Save Vehicle'; }
   }
-
-  bootstrap.Modal.getInstance(document.getElementById('vehicleModal')).hide();
-  renderVehiclesTable();
 }
 
-function deleteVehicleConfirm(id) {
+async function deleteVehicleConfirm(id) {
   const v = getVehicleById(id);
   if (!v) return;
-  if (confirmAction(`Delete vehicle "${v.registrationNumber}"?`)) {
-    deleteVehicle(id);
+  if (!confirmAction(`Delete vehicle "${v.registrationNumber}"?`)) return;
+
+  try {
+    await deleteVehicle(id);
+    deleteDocumentsByVehicle(id);
     showToast(`Vehicle ${v.registrationNumber} deleted`, 'warning');
     renderVehiclesTable();
+  } catch (err) {
+    showToast(err.message || 'Failed to delete vehicle.', 'danger');
   }
 }
