@@ -1,8 +1,8 @@
 // ============================================================
-// APP — Uzimeleni Scholar Transport System
+// APP — Zimeleni Scholar Transport System
 // ============================================================
 
-const ALL_SECTIONS = ['dashboard', 'owners', 'vehicles', 'drivers', 'meetings', 'payments', 'flags', 'documents'];
+const ALL_SECTIONS = ['dashboard', 'owners', 'vehicles', 'drivers', 'meetings', 'payments', 'flags', 'documents', 'conduct'];
 
 const NAV_ITEMS = [
   { section: 'dashboard', icon: 'bi-grid-fill',          label: 'Dashboard'          },
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { section: 'payments',  icon: 'bi-cash-coin',           label: 'Payments'           },
   { section: 'flags',     icon: 'bi-flag-fill',           label: 'Flags / Compliance' },
   { section: 'documents', icon: 'bi-folder-fill',         label: 'Documents'          },
+  { section: 'conduct',   icon: 'bi-journal-text',        label: 'Code of Conduct'    },
 ];
 
 // ---- Init -----------------------------------------------
@@ -96,6 +97,7 @@ async function navigateTo(section) {
     vehicles:  'Vehicles',     drivers: 'Drivers',
     meetings:  'Meetings',     payments: 'Payments',
     flags:     'Flags / Compliance', documents: 'Documents',
+    conduct:   'Code of Conduct',
   };
   document.getElementById('page-title').textContent = titles[section] || section;
 
@@ -113,6 +115,7 @@ async function navigateTo(section) {
     payments:  renderPayments,
     flags:     renderFlags,
     documents: renderDocuments,
+    conduct:   renderConduct,
   };
   if (renderers[section]) await renderers[section]();
 

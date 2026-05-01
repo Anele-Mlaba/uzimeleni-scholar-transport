@@ -1,5 +1,5 @@
 // ============================================================
-// UTILITIES — Uzimeleni Scholar Transport System
+// UTILITIES — Zimeleni Scholar Transport System
 // ============================================================
 
 function showToast(message, type = 'success') {

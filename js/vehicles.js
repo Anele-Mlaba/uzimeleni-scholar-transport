@@ -1,12 +1,13 @@
 // ============================================================
-// VEHICLES — Uzimeleni Scholar Transport System
+// VEHICLES — Zimeleni Scholar Transport System
 // ============================================================
 
 let _editVehicleId = null;
 
 async function renderVehicles() {
   showLoading('vehicles-content');
-  await Promise.all([refreshVehicles(), refreshOwners(), refreshDrivers()]);
+  await refreshOwners();
+  await Promise.all([refreshVehicles(), refreshDrivers()]);
 
   const canManage = hasRole('chairperson');
 

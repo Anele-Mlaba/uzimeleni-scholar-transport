@@ -1,5 +1,5 @@
 // ============================================================
-// OWNERS — Uzimeleni Scholar Transport System
+// OWNERS — Zimeleni Scholar Transport System
 // ============================================================
 
 let _editOwnerId = null;

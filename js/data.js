@@ -1,5 +1,5 @@
 // ============================================================
-// DATA — Uzimeleni Scholar Transport System
+// DATA — Zimeleni Scholar Transport System
 // ============================================================
 
 // ── Static public-site data (no API) ─────────────────────────
@@ -8,7 +8,7 @@ const COMMITTEE = [
   {
     name: 'John', surname: 'Dlamini', role: 'Chairperson',
     img: 'https://i.pravatar.cc/200?img=12',
-    bio: 'Leading Uzimeleni for over 12 years, John ensures every operator meets the highest safety and compliance standards.',
+    bio: 'Leading Zimeleni for over 12 years, John ensures every operator meets the highest safety and compliance standards.',
   },
   {
     name: 'Zanele', surname: 'Mokoena', role: 'Deputy Chairperson',
@@ -53,8 +53,8 @@ let meetings    = [];
 let payments    = [];
 let activityLog = [];
 
-// Documents are persisted in localStorage (no backend CRUD endpoint yet)
-let documents = _loadDocumentsFromStorage();
+// Documents are fetched from S3, cached per owner
+let _s3Docs = {};
 
 // ── Field mappers: API ↔ frontend model ───────────────────────
 
@@ -144,13 +144,15 @@ function _fromApiMeeting(m) {
   return {
     id:        m.meeting_id  || m.id        || '',
     title:     m.title       || '',
-    date:      m.date        || '',
+    date:      (m.date        || '').slice(0, 10),
     location:  m.location    || '',
-    startTime: m.start_time  || m.startTime || '',
+    startTime: (m.start_time || m.startTime || '').slice(0, 5),
     notes:     m.notes       || m.agenda    || '',
-    attendees: (m.attendees || []).map(a => ({ name: a.name || '', idNumber: a.id_number || '' })),
+    attendees: (m.attendees || []).map(a => ({ name: a.name || '', idNumber: a.id_number || '', status: a.attendee_status || 'present' })),
     absentees: (m.absentees || []).map(a => ({ name: a.name || '', idNumber: a.id_number || '' })),
-    minutes:   m.minutes     || '',
+    locked:           m.is_locked === true || m.is_locked === 'true',
+    minutes:          (m.minutes && typeof m.minutes === 'object') ? (m.minutes.content    || '') : (m.minutes    || ''),
+    minutesUpdatedAt: (m.minutes && typeof m.minutes === 'object') ? (m.minutes.updated_at || '') : '',
   };
 }
 
@@ -161,18 +163,30 @@ function _toApiMeeting(data) {
     location:   data.location   || '',
     start_time: data.startTime  || '',
     agenda:     data.notes      || '',
-    minutes:    data.minutes    || '',
   };
 }
 
 function _fromApiPayment(p) {
+  const status = p.status === 'outstanding' ? 'pending' : (p.status || 'pending');
   return {
     id:          p.payment_id   || p.id            || String(Date.now()),
     ownerId:     p.owner_id     || null,
     amount:      parseFloat(p.amount)              || 0,
     description: p.item_name    || p.description   || '',
-    status:      p.status       || 'pending',
+    status,
     date:        p.created_at   ? p.created_at.split('T')[0] : (p.date || ''),
+  };
+}
+
+function _fromApiManualPayment(p) {
+  const owner = owners.find(o => o.idNumber === (p.id_number || ''));
+  return {
+    id:          p.payment_id   || String(Date.now()),
+    ownerId:     owner ? owner.id : null,
+    amount:      parseFloat(p.amount)              || 0,
+    description: p.description  || '',
+    status:      p.status === 'outstanding' ? 'pending' : (p.status || 'pending'),
+    date:        p.created_at   ? p.created_at.split('T')[0] : '',
   };
 }
 
@@ -182,11 +196,24 @@ async function refreshOwners() {
   const result = await OwnersAPI.list();
   if (result.ok && Array.isArray(result.data.owners)) {
     owners = result.data.owners.map(_fromApiOwner);
+    _hydrateOwnerSession();
   }
 }
 
+// If the JWT didn't carry owner_id, look it up from the owners list and persist it.
+function _hydrateOwnerSession() {
+  const user = getCurrentUser();
+  if (!user || user.role !== 'owner' || user.ownerId) return;
+  const match = owners.find(o => o.idNumber === user.id_number);
+  if (!match) return;
+  user.ownerId = match.id;
+  localStorage.setItem('ust_user', JSON.stringify(user));
+}
+
 async function refreshVehicles() {
-  const result = await VehiclesAPI.list();
+  const user    = getCurrentUser();
+  const ownerId = (user && user.role === 'owner') ? user.ownerId : null;
+  const result  = await VehiclesAPI.list(ownerId || undefined);
   if (result.ok && Array.isArray(result.data.vehicles)) {
     vehicles = result.data.vehicles.map(_fromApiVehicle);
   }
@@ -209,12 +236,23 @@ async function refreshMeetings() {
 }
 
 async function refreshPayments() {
-  const user = getCurrentUser();
+  const user    = getCurrentUser();
   const ownerId = (user && user.role === 'owner') ? user.ownerId : null;
-  const result = await PaymentsAPI.list(ownerId);
-  if (result.ok && Array.isArray(result.data.payments)) {
-    payments = result.data.payments.map(_fromApiPayment);
-  }
+
+  const [regularResult, manualResult] = await Promise.all([
+    PaymentsAPI.list(ownerId),
+    ManualPaymentsAPI.list(),
+  ]);
+
+  const regular = (regularResult.ok && Array.isArray(regularResult.data.payments))
+    ? regularResult.data.payments.map(_fromApiPayment)
+    : [];
+
+  const manual = (manualResult.ok && Array.isArray(manualResult.data.payments))
+    ? manualResult.data.payments.map(_fromApiManualPayment)
+    : [];
+
+  payments = [...regular, ...manual];
 }
 
 // ── Sync getters (read from cache) ────────────────────────────
@@ -338,9 +376,8 @@ async function updateMeeting(id, data) {
   if (!current) throw new Error('Meeting not found');
   const merged = { ...current, ...data };
 
-  // Call API only when updating actual meeting fields (not local-only attendance)
   const hasApiFields = 'title' in data || 'date' in data || 'location' in data ||
-                       'startTime' in data || 'notes' in data || 'minutes' in data;
+                       'startTime' in data || 'notes' in data;
   if (hasApiFields) {
     const result = await MeetingsAPI.update(id, _toApiMeeting(merged));
     if (!result.ok) throw new Error(result.data?.error || 'Failed to update meeting');
@@ -351,40 +388,57 @@ async function updateMeeting(id, data) {
   return meetings[idx];
 }
 
+async function lockMeeting(id) {
+  const result = await MeetingsAPI.lock(id);
+  if (!result.ok) throw new Error(result.data?.error || 'Failed to lock meeting');
+  const idx = meetings.findIndex(m => m.id === id);
+  if (idx !== -1) meetings[idx] = { ...meetings[idx], locked: true };
+}
+
+async function saveMeetingMinutes(id, content) {
+  const result = await MeetingsAPI.saveMinutes(id, content);
+  if (!result.ok) throw new Error(result.data?.error || 'Failed to save minutes');
+  const idx = meetings.findIndex(m => m.id === id);
+  if (idx !== -1) meetings[idx] = { ...meetings[idx], minutes: content, minutesUpdatedAt: new Date().toISOString() };
+}
+
 async function deleteMeeting(id) {
   const result = await MeetingsAPI.delete(id);
   if (!result.ok) throw new Error(result.data?.error || 'Failed to delete meeting');
   meetings = meetings.filter(m => m.id !== id);
 }
 
-function updateAttendance(meetingId, ownerId, attended) {
-  const meeting = meetings.find(m => m.id === meetingId);
-  if (!meeting) return;
+async function updateAttendance(meetingId, ownerId, status = 'present') {
+  const meeting = getMeetingById(meetingId);
+  if (!meeting) throw new Error('Meeting not found');
   const owner = getOwnerById(ownerId);
-  if (!owner) return;
+  if (!owner) throw new Error('Owner not found');
 
-  if (!meeting.attendees) meeting.attendees = [];
-  if (!meeting.absentees) meeting.absentees = [];
+  const existing = (meeting.attendees || [])
+    .filter(a => a.idNumber && a.idNumber !== owner.idNumber)
+    .map(a => ({ id_number: a.idNumber, attendee_status: a.status || 'present' }));
+  existing.push({ id_number: owner.idNumber, attendee_status: status });
 
-  const person = { name: `${owner.name} ${owner.surname}`, idNumber: owner.idNumber };
+  const result = await MeetingsAPI.recordAttendance(meetingId, existing);
+  if (!result.ok) throw new Error(result.data?.error || 'Failed to record attendance');
 
-  if (attended) {
-    if (!meeting.attendees.some(a => a.idNumber === owner.idNumber)) {
-      meeting.attendees.push(person);
-    }
-    meeting.absentees = meeting.absentees.filter(a => a.idNumber !== owner.idNumber);
-  } else {
-    meeting.attendees = meeting.attendees.filter(a => a.idNumber !== owner.idNumber);
-    if (!meeting.absentees.some(a => a.idNumber === owner.idNumber)) {
-      meeting.absentees.push(person);
-    }
-  }
-
-  const idNumbers = meeting.attendees.map(a => a.idNumber);
-  MeetingsAPI.recordAttendance(meetingId, idNumbers).catch(console.error);
+  await refreshMeetings();
 }
 
 // ── Payment mutations ─────────────────────────────────────────
+
+async function createFine(ownerId, amount, description, reason = 'custom') {
+  const owner = getOwnerById(ownerId);
+  if (!owner) throw new Error('Owner not found');
+  const result = await ManualPaymentsAPI.create({
+    id_number:   owner.idNumber,
+    reason,
+    amount:      parseFloat(amount.toFixed(2)),
+    description,
+  });
+  if (!result.ok) throw new Error(result.data?.error || 'Failed to create fine');
+  await refreshPayments();
+}
 
 function addPayment(payment) {
   payments.push(payment);
@@ -439,47 +493,93 @@ function getRecentActivities(limit = 6) {
   return activityLog.slice(0, limit);
 }
 
-// ── Documents (localStorage-backed) ──────────────────────────
+// ── Documents (S3-backed) ─────────────────────────────────────
 
-function _loadDocumentsFromStorage() {
-  try {
-    return JSON.parse(localStorage.getItem('ust_documents') || '[]');
-  } catch {
-    return [];
-  }
+const _MIME_BY_EXT = {
+  pdf:  'application/pdf',
+  jpg:  'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
+  gif:  'image/gif',  webp: 'image/webp',
+  doc:  'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+};
+
+function _mimeFromName(name) {
+  const ext = (name || '').split('.').pop().toLowerCase();
+  return _MIME_BY_EXT[ext] || 'application/octet-stream';
 }
 
-function _persistDocuments() {
-  localStorage.setItem('ust_documents', JSON.stringify(documents));
+function _s3DocFromFile(f, slot, ownerId) {
+  return {
+    id:         `${slot.folder}/${f.name}`,
+    ownerId,
+    type:       slot.type,
+    vehicleId:  slot.vehicleId  || null,
+    driverId:   slot.driverId   || null,
+    fileName:   f.name,
+    fileType:   _mimeFromName(f.name),
+    fileSize:   f.size          || 0,
+    uploadedAt: f.last_modified ? f.last_modified.split('T')[0] : '',
+    s3Key:      `${slot.folder}/${f.name}`,
+  };
 }
 
-function getDocuments()               { return [...documents]; }
-function getDocumentsByOwner(ownerId) { return documents.filter(d => d.ownerId === ownerId); }
-function getDocumentById(id)          { return documents.find(d => String(d.id) === String(id)); }
+async function refreshDocumentsFromS3(ownerId) {
+  const ownerVehicles = vehicles.filter(v => v.ownerId === ownerId);
+  const ownerDrivers  = drivers.filter(d => d.ownerId === ownerId);
 
-function addDocument(doc) {
-  doc.id = Date.now();
-  documents.push(doc);
-  _persistDocuments();
+  const slots = [
+    { folder: `owners/${ownerId}/id`,    type: 'id',             vehicleId: null, driverId: null },
+    ...ownerVehicles.flatMap(v => [
+      { folder: `vehicles/${v.id}/logbook`, type: 'logbook',        vehicleId: v.id,  driverId: null },
+      { folder: `vehicles/${v.id}/permit`,  type: 'permit',         vehicleId: v.id,  driverId: null },
+    ]),
+    ...ownerDrivers.flatMap(d => [
+      { folder: `drivers/${d.id}/drivers_license`, type: 'drivers_license', vehicleId: null, driverId: d.id },
+      { folder: `drivers/${d.id}/pdp`,             type: 'pdp',             vehicleId: null, driverId: d.id },
+    ]),
+  ];
+
+  const results = await Promise.all(
+    slots.map(slot => FilesAPI.list(slot.folder).then(r => ({ slot, r })))
+  );
+
+  const docs = [];
+  results.forEach(({ slot, r }) => {
+    if (!r.ok) return;
+    const files = Array.isArray(r.data.files) ? r.data.files : [];
+    files.forEach(f => docs.push(_s3DocFromFile(f, slot, ownerId)));
+  });
+
+  _s3Docs[ownerId] = docs;
+}
+
+function getDocumentsByOwner(ownerId) { return _s3Docs[ownerId] || []; }
+function getDocumentById(id)          {
+  return Object.values(_s3Docs).flat().find(d => d.id === id);
+}
+
+function logDocumentActivity(doc) {
   const owner = getOwnerById(doc.ownerId);
   if (owner) addActivity(
     `Document uploaded for ${owner.name} ${owner.surname} (${doc.fileName})`,
     'bi-file-earmark', 'document'
   );
-  return doc;
 }
 
 function deleteDocument(id) {
-  documents = documents.filter(d => String(d.id) !== String(id));
-  _persistDocuments();
+  for (const ownerId of Object.keys(_s3Docs)) {
+    _s3Docs[ownerId] = (_s3Docs[ownerId] || []).filter(d => d.id !== id);
+  }
 }
 
 function deleteDocumentsByVehicle(vehicleId) {
-  documents = documents.filter(d => d.vehicleId !== vehicleId);
-  _persistDocuments();
+  for (const ownerId of Object.keys(_s3Docs)) {
+    _s3Docs[ownerId] = (_s3Docs[ownerId] || []).filter(d => d.vehicleId !== vehicleId);
+  }
 }
 
 function deleteDocumentsByDriver(driverId) {
-  documents = documents.filter(d => d.driverId !== driverId);
-  _persistDocuments();
+  for (const ownerId of Object.keys(_s3Docs)) {
+    _s3Docs[ownerId] = (_s3Docs[ownerId] || []).filter(d => d.driverId !== driverId);
+  }
 }

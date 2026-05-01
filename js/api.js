@@ -1,5 +1,5 @@
 // ============================================================
-// API CLIENT — Uzimeleni Scholar Transport System
+// API CLIENT — Zimeleni Scholar Transport System
 // ============================================================
 // Set this to your deployed API Gateway base URL (no trailing slash)
 const API_BASE_URL = 'https://7q9or1mk2m.execute-api.eu-west-1.amazonaws.com/Stage';
@@ -75,12 +75,15 @@ const DriversAPI = {
 // ── Meetings ─────────────────────────────────────────────────
 
 const MeetingsAPI = {
-  list:   ()         => _apiRequest('GET',    '/meetings',       null),
-  create: (data)     => _apiRequest('POST',   '/meetings',       data),
-  update: (id, data) => _apiRequest('PUT',    `/meetings/${id}`, data),
-  delete: (id)       => _apiRequest('DELETE', `/meetings/${id}`, null),
-  recordAttendance: (id, attendeeIds) =>
-    _apiRequest('POST', `/meetings/${id}/attendance`, { attendee_ids: attendeeIds }),
+  list:   ()         => _apiRequest('GET',    '/meetings',                  null),
+  create: (data)     => _apiRequest('POST',   '/meetings',                  data),
+  update: (id, data) => _apiRequest('PUT',    `/meetings/${id}`,            data),
+  delete: (id)       => _apiRequest('DELETE', `/meetings/${id}`,            null),
+  lock:   (id)       => _apiRequest('PUT',    `/meetings/${id}/lock`,       null),
+  recordAttendance: (id, attendees) =>
+    _apiRequest('POST', `/meetings/${id}/attendance`, { attendees }),
+  saveMinutes: (id, content) =>
+    _apiRequest('POST', `/meetings/${id}/minutes`, { content }),
 };
 
 // ── Payments ─────────────────────────────────────────────────
@@ -93,7 +96,17 @@ const PaymentsAPI = {
     const qs = params.toString();
     return _apiRequest('GET', `/payments${qs ? `?${qs}` : ''}`, null);
   },
+  create:  (data) => _apiRequest('POST', '/payments',         data),
   initiate: (data) => _apiRequest('POST', '/payments/initiate', data),
+};
+
+// ── Manual Payments ───────────────────────────────────────────
+
+const ManualPaymentsAPI = {
+  list:        ()         => _apiRequest('GET',  '/manual-payments',            null),
+  create:      (data)     => _apiRequest('POST', '/manual-payments',            data),
+  bulkCreate:  (data)     => _apiRequest('POST', '/manual-payments/bulk',       data),
+  markPaid:    (id)       => _apiRequest('PUT',  `/manual-payments/${id}/pay`,  null),
 };
 
 // ── Flags ────────────────────────────────────────────────────
@@ -113,6 +126,10 @@ const FlagsAPI = {
 // ── Files (S3 presigned URLs) ─────────────────────────────────
 
 const FilesAPI = {
+  list: (folder) =>
+    _apiRequest('GET',
+      `/files?folder=${encodeURIComponent(folder)}`,
+      null),
   getDownloadUrl: (folder, file) =>
     _apiRequest('GET',
       `/files?folder=${encodeURIComponent(folder)}&file=${encodeURIComponent(file)}`,

@@ -1,5 +1,5 @@
 // ============================================================
-// DOCUMENTS — Uzimeleni Scholar Transport System
+// DOCUMENTS — Zimeleni Scholar Transport System
 // ============================================================
 
 let _docOwnerFilter = null;
@@ -26,7 +26,8 @@ function _getS3Folder(ctx) {
 
 async function renderDocuments() {
   showLoading('documents-content');
-  await Promise.all([refreshOwners(), refreshVehicles(), refreshDrivers()]);
+  await refreshOwners();
+  await Promise.all([refreshVehicles(), refreshDrivers()]);
 
   const user          = getCurrentUser();
   const isChairperson = hasRole('chairperson');
@@ -71,12 +72,17 @@ function filterDocsByOwner(val) {
 
 // ---- Per-owner document view --------------------------------
 
-function _renderDocumentsForOwner(ownerId) {
+async function _renderDocumentsForOwner(ownerId) {
   const container = document.getElementById('docs-for-owner');
   if (!container) return;
 
-  const owner       = getOwnerById(ownerId);
+  const owner = getOwnerById(ownerId);
   if (!owner) { container.innerHTML = ''; return; }
+
+  container.innerHTML = `<div class="text-center text-muted py-5">
+    <span class="spinner-border spinner-border-sm me-2"></span>Loading documents…</div>`;
+
+  await refreshDocumentsFromS3(ownerId);
 
   const vehicleList = getVehicles().filter(v => v.ownerId === ownerId);
   const driversList = getDriversByOwner(ownerId);
@@ -330,29 +336,29 @@ async function saveDocument() {
 
     const { url, fields, key } = urlResult.data;
 
-    // Step 2: upload file directly to S3 using the presigned POST
-    const formData = new FormData();
-    Object.entries(fields || {}).forEach(([k, v]) => formData.append(k, v));
-    formData.append('file', file);
-
-    const s3Response = await fetch(url, { method: 'POST', body: formData });
-    if (!s3Response.ok) {
-      throw new Error('File upload to storage failed. Please try again.');
+    // Step 2: upload directly to S3
+    // Presigned POST → fields present → FormData + POST (S3 returns 204 on success)
+    // Presigned PUT  → no fields      → raw file  + PUT  (S3 returns 200 on success)
+    if (fields && Object.keys(fields).length > 0) {
+      const formData = new FormData();
+      Object.entries(fields).forEach(([k, v]) => formData.append(k, v));
+      formData.append('file', file);
+      // mode: 'no-cors' because S3 returns 204 with no CORS headers on the response.
+      // Chrome blocks reading the response (net::ERR_FAILED) even though the upload
+      // succeeded. no-cors skips the CORS check so the request completes without throwing.
+      await fetch(url, { method: 'POST', body: formData, mode: 'no-cors' });
+    } else {
+      const s3Response = await fetch(url, { method: 'PUT', body: file,
+        headers: { 'Content-Type': contentType } });
+      if (!s3Response.ok) {
+        throw new Error('File upload to storage failed. Please try again.');
+      }
     }
 
-    // Step 3: persist document metadata in localStorage
-    const user = getCurrentUser();
-    addDocument({
-      ownerId:    _uploadContext.ownerId,
-      type:       _uploadContext.type,
-      vehicleId:  _uploadContext.vehicleId || null,
-      driverId:   _uploadContext.driverId  || null,
-      fileName:   file.name,
-      fileType:   contentType,
-      fileSize:   file.size,
-      uploadedAt: new Date().toISOString().split('T')[0],
-      uploadedBy: user?.email || 'unknown',
-      s3Key:      key || `${folder}/${file.name}`,
+    // Step 3: log activity and refresh from S3
+    logDocumentActivity({
+      ownerId:  _uploadContext.ownerId,
+      fileName: file.name,
     });
 
     bootstrap.Modal.getInstance(document.getElementById('docUploadModal')).hide();
@@ -416,7 +422,7 @@ async function deleteDocumentConfirm(id) {
 
     const result = await FilesAPI.getDeleteUrl(folder, file);
     if (result.ok && result.data?.url) {
-      fetch(result.data.url, { method: 'DELETE' }).catch(console.error);
+      await fetch(result.data.url, { method: 'DELETE' }).catch(console.error);
     }
   }
 

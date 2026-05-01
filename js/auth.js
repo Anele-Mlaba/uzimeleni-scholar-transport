@@ -1,5 +1,5 @@
 // ============================================================
-// AUTH — Uzimeleni Scholar Transport System
+// AUTH — Zimeleni Scholar Transport System
 // ============================================================
 
 async function login(id_number, password) {
@@ -10,10 +10,11 @@ async function login(id_number, password) {
   const payload = _decodeJwt(token);
 
   const user = {
-    id_number: payload?.sub || id_number,
+    id_number: payload?.sub      || id_number,
     token,
-    name: payload?.name || id_number,
-    role: payload?.role || 'owner',
+    name:      payload?.name     || id_number,
+    role:      payload?.role     || 'owner',
+    ownerId:   payload?.owner_id || null,
   };
 
   localStorage.setItem('ust_user', JSON.stringify(user));
@@ -47,9 +48,10 @@ function getCurrentUser() {
     if (user.token) {
       const payload = _decodeJwt(user.token);
       if (payload) {
-        user.id_number = payload.sub    || user.id_number;
-        user.name      = payload.name   || user.name;
-        user.role      = payload.role   || user.role;
+        user.id_number = payload.sub      || user.id_number;
+        user.name      = payload.name     || user.name;
+        user.role      = payload.role     || user.role;
+        user.ownerId   = payload.owner_id || user.ownerId || null;
       }
     }
     return user;
@@ -72,11 +74,11 @@ function canAccess(section) {
   if (!user) return false;
 
   const access = {
-    chairperson: ['dashboard', 'owners', 'vehicles', 'drivers', 'meetings', 'payments', 'flags', 'documents'],
-    secretary:   ['dashboard', 'meetings'],
-    treasurer:   ['dashboard', 'payments'],
-    security:    ['vehicles', 'flags'],
-    owner:       ['vehicles', 'payments', 'meetings', 'documents'],
+    chairperson: ['dashboard', 'owners', 'vehicles', 'drivers', 'meetings', 'payments', 'flags', 'documents', 'conduct'],
+    secretary:   ['dashboard', 'meetings', 'conduct'],
+    treasurer:   ['dashboard', 'payments', 'conduct'],
+    security:    ['vehicles', 'flags', 'conduct'],
+    owner:       ['vehicles', 'payments', 'meetings', 'flags', 'documents', 'conduct'],
   };
 
   return (access[user.role] || []).includes(section);

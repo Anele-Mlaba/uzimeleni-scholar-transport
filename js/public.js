@@ -1,5 +1,5 @@
 // ============================================================
-// PUBLIC SITE — Uzimeleni Scholar Transport System
+// PUBLIC SITE — Zimeleni Scholar Transport System
 // ============================================================
 
 function initPublicSite() {
@@ -117,12 +117,18 @@ function _animateCounters() {
   });
 }
 
-// ---- Document download (simulated) ---------------------------
+// ---- Document download (S3) ----------------------------------
 
-function downloadDoc(e, name) {
+async function downloadDoc(e, name) {
   e.preventDefault();
   showToast(`Preparing "${name}" for download…`, 'info');
-  setTimeout(() => showToast(`"${name}" download started.`, 'success'), 1400);
+  const res = await FilesAPI.getDownloadUrl('org', 'price_list.pdf');
+  if (!res.ok || !res.data?.url) {
+    showToast(`Could not load "${name}". Please try again later.`, 'danger');
+    return;
+  }
+  window.open(res.data.url, '_blank', 'noopener');
+  showToast(`"${name}" download started.`, 'success');
 }
 
 // ---- Social media click --------------------------------------

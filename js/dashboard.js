@@ -1,5 +1,5 @@
 // ============================================================
-// DASHBOARD — Uzimeleni Scholar Transport System
+// DASHBOARD — Zimeleni Scholar Transport System
 // ============================================================
 
 let _memberChart   = null;
