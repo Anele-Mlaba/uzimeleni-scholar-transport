@@ -1,0 +1,24 @@
+name: Release uzimeleni Website
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::126309363780:role/Uzimeleni-Deployment-Role
+          aws-region: eu-west-1
+          
+      - name: Deploy uzimeleni website to S3
+        run: aws s3 sync . s3://zimeleni-transport-org --delete --exclude ".git/*" --exclude ".github/*"
