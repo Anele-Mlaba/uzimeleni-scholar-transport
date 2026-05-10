@@ -89,7 +89,7 @@ function _renderCommittee() {
 
 function _avatarEl(name, surname) {
   const initials = (name[0] + surname[0]).toUpperCase();
-  const palette  = ['#0d6efd','#198754','#0dcaf0','#fd7e14','#6610f2','#d63384'];
+  const palette  = ['#004225','#FFB000','#002a17','#E5A66B','#6B4A00','#006135'];
   const bg       = palette[(name.charCodeAt(0) + surname.charCodeAt(0)) % palette.length];
   const div      = document.createElement('div');
   div.className  = 'committee-photo rounded-circle mb-3 d-flex align-items-center justify-content-center mx-auto';

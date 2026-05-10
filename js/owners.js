@@ -104,6 +104,11 @@ function renderOwnersTable() {
                   onclick="openEditOwnerModal('${o.id}')">
             <i class="bi bi-pencil"></i>
           </button>
+          <button class="btn btn-sm btn-outline-${o.status === 'Suspended' ? 'success' : 'warning'} me-1"
+                  title="${o.status === 'Suspended' ? 'Unsuspend' : 'Suspend'}"
+                  onclick="${o.status === 'Suspended' ? 'unsuspendOwnerAction' : 'suspendOwnerAction'}('${o.id}')">
+            <i class="bi bi-${o.status === 'Suspended' ? 'unlock' : 'lock'}"></i>
+          </button>
           <button class="btn btn-sm btn-outline-danger" title="Delete"
                   onclick="deleteOwnerConfirm('${o.id}')">
             <i class="bi bi-trash"></i>
@@ -180,6 +185,32 @@ async function saveOwner() {
     showToast(err.message || 'Failed to save owner.', 'danger');
   } finally {
     if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Save Owner'; }
+  }
+}
+
+async function suspendOwnerAction(id) {
+  const o = getOwnerById(id);
+  if (!o) return;
+  if (!confirmAction(`Suspend owner "${o.name} ${o.surname}"?`)) return;
+  try {
+    await suspendOwner(id);
+    showToast(`${o.name} ${o.surname} suspended`, 'warning');
+    renderOwnersTable();
+  } catch (err) {
+    showToast(err.message || 'Failed to suspend owner.', 'danger');
+  }
+}
+
+async function unsuspendOwnerAction(id) {
+  const o = getOwnerById(id);
+  if (!o) return;
+  if (!confirmAction(`Unsuspend owner "${o.name} ${o.surname}"?`)) return;
+  try {
+    await unsuspendOwner(id);
+    showToast(`${o.name} ${o.surname} unsuspended`, 'success');
+    renderOwnersTable();
+  } catch (err) {
+    showToast(err.message || 'Failed to unsuspend owner.', 'danger');
   }
 }
 
