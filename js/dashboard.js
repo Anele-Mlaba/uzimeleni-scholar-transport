@@ -177,8 +177,8 @@ function _initPaymentsChart(paymentList) {
     data: {
       labels: months,
       datasets: [
-        { label: 'Paid (R)',    data: paidByMonth,    backgroundColor: 'rgba(25,135,84,0.75)',  borderRadius: 4 },
-        { label: 'Pending (R)', data: pendingByMonth, backgroundColor: 'rgba(255,193,7,0.75)',  borderRadius: 4 },
+        { label: 'Paid (R)',    data: paidByMonth,    backgroundColor: 'rgba(0,66,37,0.85)',    borderRadius: 4 },
+        { label: 'Pending (R)', data: pendingByMonth, backgroundColor: 'rgba(255,176,0,0.85)',  borderRadius: 4 },
       ]
     },
     options: {
@@ -203,7 +203,7 @@ function _initMemberChart(ownersList) {
       labels: ['Active', 'Suspended'],
       datasets: [{
         data: [active, suspended],
-        backgroundColor: ['rgba(25,135,84,0.8)', 'rgba(220,53,69,0.8)'],
+        backgroundColor: ['rgba(0,66,37,0.85)', 'rgba(229,166,107,0.85)'],
         borderWidth: 0,
       }]
     },

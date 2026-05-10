@@ -70,6 +70,11 @@ function renderDriversTable() {
                   onclick="openEditDriverModal('${d.id}')">
             <i class="bi bi-pencil"></i>
           </button>
+          <button class="btn btn-sm btn-outline-${d.status === 'Suspended' ? 'success' : 'warning'} me-1"
+                  title="${d.status === 'Suspended' ? 'Unsuspend' : 'Suspend'}"
+                  onclick="${d.status === 'Suspended' ? 'unsuspendDriverAction' : 'suspendDriverAction'}('${d.id}')">
+            <i class="bi bi-${d.status === 'Suspended' ? 'unlock' : 'lock'}"></i>
+          </button>
           <button class="btn btn-sm btn-outline-danger" title="Delete"
                   onclick="deleteDriverConfirm('${d.id}')">
             <i class="bi bi-trash"></i>
@@ -152,6 +157,32 @@ async function saveDriver() {
     showToast(err.message || 'Failed to save driver.', 'danger');
   } finally {
     if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Save Driver'; }
+  }
+}
+
+async function suspendDriverAction(id) {
+  const d = getDriverById(id);
+  if (!d) return;
+  if (!confirmAction(`Suspend driver "${d.name} ${d.surname}"?`)) return;
+  try {
+    await suspendDriver(id);
+    showToast(`${d.name} ${d.surname} suspended`, 'warning');
+    renderDriversTable();
+  } catch (err) {
+    showToast(err.message || 'Failed to suspend driver.', 'danger');
+  }
+}
+
+async function unsuspendDriverAction(id) {
+  const d = getDriverById(id);
+  if (!d) return;
+  if (!confirmAction(`Unsuspend driver "${d.name} ${d.surname}"?`)) return;
+  try {
+    await unsuspendDriver(id);
+    showToast(`${d.name} ${d.surname} unsuspended`, 'success');
+    renderDriversTable();
+  } catch (err) {
+    showToast(err.message || 'Failed to unsuspend driver.', 'danger');
   }
 }
 

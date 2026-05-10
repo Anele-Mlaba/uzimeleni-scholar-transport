@@ -44,11 +44,13 @@ const AuthAPI = {
 // ── Owners ───────────────────────────────────────────────────
 
 const OwnersAPI = {
-  list:   ()             => _apiRequest('GET',    '/owners',       null),
-  get:    (id)           => _apiRequest('GET',    `/owners/${id}`, null),
-  create: (data)         => _apiRequest('POST',   '/owners',       data),
-  update: (id, data)     => _apiRequest('PUT',    `/owners/${id}`, data),
-  delete: (id)           => _apiRequest('DELETE', `/owners/${id}`, null),
+  list:      ()         => _apiRequest('GET',    '/owners',                null),
+  get:       (id)       => _apiRequest('GET',    `/owners/${id}`,          null),
+  create:    (data)     => _apiRequest('POST',   '/owners',                data),
+  update:    (id, data) => _apiRequest('PUT',    `/owners/${id}`,          data),
+  delete:    (id)       => _apiRequest('DELETE', `/owners/${id}`,          null),
+  suspend:   (id)       => _apiRequest('PUT',    `/owners/${id}/suspend`,   null),
+  unsuspend: (id)       => _apiRequest('PUT',    `/owners/${id}/unsuspend`, null),
 };
 
 // ── Vehicles ─────────────────────────────────────────────────
@@ -67,9 +69,11 @@ const VehiclesAPI = {
 // ── Drivers ──────────────────────────────────────────────────
 
 const DriversAPI = {
-  list:   ()             => _apiRequest('GET',  '/drivers',       null),
-  create: (data)         => _apiRequest('POST', '/drivers',       data),
-  update: (id, data)     => _apiRequest('PUT',  `/drivers/${id}`, data),
+  list:      ()         => _apiRequest('GET',  '/drivers',                 null),
+  create:    (data)     => _apiRequest('POST', '/drivers',                 data),
+  update:    (id, data) => _apiRequest('PUT',  `/drivers/${id}`,           data),
+  suspend:   (id)       => _apiRequest('PUT',  `/drivers/${id}/suspend`,   null),
+  unsuspend: (id)       => _apiRequest('PUT',  `/drivers/${id}/unsuspend`, null),
 };
 
 // ── Meetings ─────────────────────────────────────────────────

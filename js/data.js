@@ -298,6 +298,20 @@ async function deleteOwner(id) {
   owners = owners.filter(o => o.id !== id);
 }
 
+async function suspendOwner(id) {
+  const result = await OwnersAPI.suspend(id);
+  if (!result.ok) throw new Error(result.data?.error || 'Failed to suspend owner');
+  const idx = owners.findIndex(o => o.id === id);
+  if (idx !== -1) owners[idx] = { ...owners[idx], status: 'Suspended' };
+}
+
+async function unsuspendOwner(id) {
+  const result = await OwnersAPI.unsuspend(id);
+  if (!result.ok) throw new Error(result.data?.error || 'Failed to unsuspend owner');
+  const idx = owners.findIndex(o => o.id === id);
+  if (idx !== -1) owners[idx] = { ...owners[idx], status: 'Active' };
+}
+
 // ── Vehicle mutations ─────────────────────────────────────────
 
 async function addVehicle(data) {
@@ -353,6 +367,20 @@ async function updateDriver(id, data) {
 async function deleteDriver(id) {
   // No DELETE /drivers/{id} in backend yet — local removal only
   drivers = drivers.filter(d => d.id !== id);
+}
+
+async function suspendDriver(id) {
+  const result = await DriversAPI.suspend(id);
+  if (!result.ok) throw new Error(result.data?.error || 'Failed to suspend driver');
+  const idx = drivers.findIndex(d => d.id === id);
+  if (idx !== -1) drivers[idx] = { ...drivers[idx], status: 'Suspended' };
+}
+
+async function unsuspendDriver(id) {
+  const result = await DriversAPI.unsuspend(id);
+  if (!result.ok) throw new Error(result.data?.error || 'Failed to unsuspend driver');
+  const idx = drivers.findIndex(d => d.id === id);
+  if (idx !== -1) drivers[idx] = { ...drivers[idx], status: 'Active' };
 }
 
 // ── Meeting mutations ─────────────────────────────────────────
