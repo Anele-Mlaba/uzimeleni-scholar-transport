@@ -8,7 +8,7 @@ async function renderDrivers() {
   showLoading('drivers-content');
   await Promise.all([refreshDrivers(), refreshOwners()]);
 
-  const canManage = hasRole('chairperson');
+  const canManage = hasRole('chairperson') || hasRole('owner');
 
   document.getElementById('drivers-content').innerHTML = `
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -43,10 +43,15 @@ async function renderDrivers() {
 }
 
 function renderDriversTable() {
-  const canManage = hasRole('chairperson');
-  const list      = getDrivers();
+  const user      = getCurrentUser();
+  const canManage = hasRole('chairperson') || hasRole('owner');
+  let list        = getDrivers();
   const tbody     = document.getElementById('drivers-tbody');
   if (!tbody) return;
+
+  if (user && user.role === 'owner') {
+    list = list.filter(d => String(d.ownerId) === String(user.ownerId));
+  }
 
   const cols = canManage ? 7 : 6;
 
@@ -62,7 +67,7 @@ function renderDriversTable() {
       <td class="text-muted font-monospace small">${escapeHtml(d.idNumber)}</td>
       <td class="text-muted small font-monospace">${escapeHtml(d.licenseNumber || '—')}</td>
       <td>${escapeHtml(d.phone)}</td>
-      <td>${d.ownerId ? escapeHtml(getOwnerName(d.ownerId)) : '<span class="text-muted">—</span>'}</td>
+      <td>${d.ownerId ? escapeHtml(getOwnerName(d.ownerId)) : '<span class="text-muted fst-italic">Unassigned</span>'}</td>
       <td class="text-center">${statusBadge(d.status)}</td>
       ${canManage ? `
         <td class="text-center">
@@ -94,13 +99,48 @@ function _populateDriverOwnerSelect(selectedOwnerId) {
     ).join('');
 }
 
-function openAddDriverModal() {
+function _configureDriverOwnerField(lockedOwnerId) {
+  // Owners (the role) can only assign drivers to themselves — hide the picker.
+  // Chairperson opening the modal from an owner-details view also gets the
+  // field locked to that specific owner_id.
+  const row = document.getElementById('driver-owner-row');
+  const sel = document.getElementById('driver-owner');
+  if (!row || !sel) return;
+
+  if (hasRole('owner')) {
+    // Hidden field: drop `required` so HTML5 validation doesn't block submit.
+    // saveDriver overrides ownerId with user.ownerId for this role.
+    row.style.display = 'none';
+    sel.disabled = false;
+    sel.removeAttribute('required');
+  } else {
+    row.style.display = '';
+    sel.disabled = !!lockedOwnerId;
+    sel.setAttribute('required', '');
+  }
+}
+
+function _clearDriverFormError() {
+  const err = document.getElementById('driver-form-error');
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+}
+
+function _showDriverFormError(message) {
+  const err = document.getElementById('driver-form-error');
+  if (err) { err.textContent = message; err.style.display = 'block'; }
+}
+
+function openAddDriverModal(lockedOwnerId) {
   _editDriverId = null;
   document.getElementById('driverModalTitle').textContent = 'Add Driver';
   const form = document.getElementById('driver-form');
   form.reset();
   form.classList.remove('was-validated');
-  _populateDriverOwnerSelect(null);
+  _clearDriverFormError();
+  _configureDriverOwnerField(lockedOwnerId);
+  const user = getCurrentUser();
+  const initialOwner = lockedOwnerId || (user?.role === 'owner' ? user.ownerId : null);
+  _populateDriverOwnerSelect(initialOwner);
   bootstrap.Modal.getOrCreateInstance(document.getElementById('driverModal')).show();
 }
 
@@ -112,6 +152,7 @@ function openEditDriverModal(id) {
   document.getElementById('driverModalTitle').textContent = 'Edit Driver';
   const form = document.getElementById('driver-form');
   form.classList.remove('was-validated');
+  _clearDriverFormError();
   document.getElementById('driver-name').value          = d.name;
   document.getElementById('driver-surname').value       = d.surname;
   document.getElementById('driver-idnumber').value      = d.idNumber;
@@ -119,6 +160,7 @@ function openEditDriverModal(id) {
   document.getElementById('driver-license-expiry').value= d.licenseExpiry || '';
   document.getElementById('driver-phone').value         = d.phone;
   document.getElementById('driver-status').value        = d.status;
+  _configureDriverOwnerField(null);
   _populateDriverOwnerSelect(d.ownerId || null);
 
   bootstrap.Modal.getOrCreateInstance(document.getElementById('driverModal')).show();
@@ -126,8 +168,15 @@ function openEditDriverModal(id) {
 
 async function saveDriver() {
   const form = document.getElementById('driver-form');
+  _clearDriverFormError();
   form.classList.add('was-validated');
-  if (!form.checkValidity()) return;
+
+  const user = getCurrentUser();
+  const ownerIdFromForm = document.getElementById('driver-owner').value || null;
+  // Owners always assign drivers to themselves; chairperson picks from the dropdown.
+  const resolvedOwnerId = user?.role === 'owner' ? user.ownerId : ownerIdFromForm;
+
+  if (!form.checkValidity() || !resolvedOwnerId) return;
 
   const data = {
     name:          document.getElementById('driver-name').value.trim(),
@@ -137,7 +186,7 @@ async function saveDriver() {
     licenseExpiry: document.getElementById('driver-license-expiry').value.trim(),
     phone:         document.getElementById('driver-phone').value.trim(),
     status:        document.getElementById('driver-status').value,
-    ownerId:       document.getElementById('driver-owner').value || null,
+    ownerId:       resolvedOwnerId,
   };
 
   const saveBtn = document.querySelector('#driverModal .btn-primary');
@@ -154,7 +203,9 @@ async function saveDriver() {
     bootstrap.Modal.getInstance(document.getElementById('driverModal')).hide();
     renderDriversTable();
   } catch (err) {
-    showToast(err.message || 'Failed to save driver.', 'danger');
+    // Backend 400s (e.g. "owner_id is required", "Owner <id> not found") land here.
+    // Show inline in the modal instead of swallowing in a toast.
+    _showDriverFormError(err.message || 'Failed to save driver.');
   } finally {
     if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Save Driver'; }
   }

@@ -46,57 +46,6 @@ async function renderDashboard() {
           </div>
         </div>
       </div>
-      <div class="col-lg-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-transparent fw-semibold py-3">
-            <i class="bi bi-pie-chart-fill text-primary me-2"></i>Member Status
-          </div>
-          <div class="card-body d-flex align-items-center justify-content-center">
-            <canvas id="memberChart" style="max-height:200px"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Activity + Flags -->
-    <div class="row g-3">
-      <div class="col-lg-7">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-transparent fw-semibold py-3">
-            <i class="bi bi-clock-history text-primary me-2"></i>Recent Activities
-          </div>
-          <ul class="list-group list-group-flush">
-            ${activities.length === 0
-              ? '<li class="list-group-item text-center text-muted py-4">No recent activity</li>'
-              : activities.map(a => `
-              <li class="list-group-item d-flex align-items-center py-3 px-3">
-                <div class="activity-icon bg-${actColor(a.type)}-subtle text-${actColor(a.type)} rounded-circle me-3 flex-shrink-0">
-                  <i class="bi ${a.icon}"></i>
-                </div>
-                <div class="flex-grow-1 min-w-0">
-                  <div class="fw-medium text-truncate">${escapeHtml(a.action)}</div>
-                  <div class="text-muted small">${a.timestamp}</div>
-                </div>
-              </li>`).join('')}
-          </ul>
-        </div>
-      </div>
-      <div class="col-lg-5">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-transparent fw-semibold py-3">
-            <i class="bi bi-flag-fill text-danger me-2"></i>Flagged Members
-          </div>
-          ${flaggedList.length === 0
-            ? '<p class="text-muted text-center p-4 mb-0"><i class="bi bi-shield-check fs-2 d-block mb-2 text-success"></i>All clear — no issues</p>'
-            : `<ul class="list-group list-group-flush">
-                ${flaggedList.map(f => `
-                  <li class="list-group-item py-3 px-3">
-                    <div class="fw-medium">${escapeHtml(f.owner.name)} ${escapeHtml(f.owner.surname)}</div>
-                    ${f.reasons.map(r => `<div class="text-danger small"><i class="bi bi-exclamation-triangle-fill me-1"></i>${escapeHtml(r)}</div>`).join('')}
-                  </li>`).join('')}
-              </ul>`
-          }
-        </div>
 
         <!-- Quick Payment Summary -->
         <div class="card border-0 shadow-sm mt-3">
