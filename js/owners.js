@@ -100,6 +100,10 @@ function renderOwnersTable() {
       <td class="text-center">${statusBadge(o.status)}</td>
       ${canManage ? `
         <td class="text-center">
+          <button class="btn btn-sm btn-outline-secondary me-1" title="View details"
+                  onclick="openOwnerDetailsModal('${o.id}')">
+            <i class="bi bi-eye"></i>
+          </button>
           <button class="btn btn-sm btn-outline-primary me-1" title="Edit"
                   onclick="openEditOwnerModal('${o.id}')">
             <i class="bi bi-pencil"></i>
@@ -225,5 +229,87 @@ async function deleteOwnerConfirm(id) {
     renderOwnersTable();
   } catch (err) {
     showToast(err.message || 'Failed to delete owner.', 'danger');
+  }
+}
+
+// ── Owner Details (with drivers section) ──────────────────────
+
+async function openOwnerDetailsModal(id) {
+  const o = getOwnerById(id);
+  if (!o) return;
+
+  document.getElementById('owner-details-info').innerHTML = `
+    <div class="row g-2 small">
+      <div class="col-md-6"><strong>Name:</strong> ${escapeHtml(o.name)} ${escapeHtml(o.surname)}</div>
+      <div class="col-md-6"><strong>ID Number:</strong> <span class="font-monospace">${escapeHtml(o.idNumber)}</span></div>
+      <div class="col-md-6"><strong>Phone:</strong> ${escapeHtml(o.phone)}</div>
+      <div class="col-md-6"><strong>Email:</strong> ${o.email ? escapeHtml(o.email) : '<span class="text-muted">—</span>'}</div>
+      <div class="col-md-6"><strong>Status:</strong> ${statusBadge(o.status)}</div>
+      <div class="col-md-6"><strong>Cars:</strong> ${o.numberOfCars}</div>
+    </div>`;
+
+  const addBtn = document.getElementById('owner-details-add-driver-btn');
+  addBtn.onclick = () => openAddDriverModal(o.id);
+
+  const listEl = document.getElementById('owner-details-drivers');
+  listEl.innerHTML = `<div class="text-center text-muted py-4">
+    <span class="spinner-border spinner-border-sm me-2"></span>Loading drivers…</div>`;
+
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('ownerDetailsModal')).show();
+
+  const result = await OwnersAPI.listDrivers(o.id);
+
+  if (!result.ok) {
+    const msg = result.status === 404
+      ? 'Owner not found.'
+      : (result.data?.error || 'Failed to load drivers.');
+    listEl.innerHTML = `<div class="alert alert-danger mb-0">${escapeHtml(msg)}</div>`;
+    document.getElementById('owner-details-drivers-count').textContent = '0';
+    return;
+  }
+
+  const apiDrivers = Array.isArray(result.data.drivers) ? result.data.drivers : [];
+  const driverList = apiDrivers.map(_fromApiDriver);
+  document.getElementById('owner-details-drivers-count').textContent = String(driverList.length);
+
+  if (driverList.length === 0) {
+    listEl.innerHTML = `<div class="text-center text-muted py-4">
+      <i class="bi bi-person-badge fs-2 d-block mb-2 opacity-50"></i>
+      No drivers linked to this owner yet.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = `
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>License No.</th>
+            <th class="text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${driverList.map(d => `
+            <tr style="cursor:pointer" onclick="_openDriverFromOwnerDetails('${d.id}')">
+              <td><div class="fw-medium">${escapeHtml(d.name)} ${escapeHtml(d.surname)}</div></td>
+              <td>${escapeHtml(d.phone)}</td>
+              <td class="text-muted small font-monospace">${escapeHtml(d.licenseNumber || '—')}</td>
+              <td class="text-center">${statusBadge(d.status)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function _openDriverFromOwnerDetails(driverId) {
+  // Close the details modal first so we don't stack modals
+  bootstrap.Modal.getInstance(document.getElementById('ownerDetailsModal'))?.hide();
+  // Ensure the driver is in the local cache for openEditDriverModal to find
+  if (!getDriverById(driverId)) {
+    refreshDrivers().then(() => openEditDriverModal(driverId));
+  } else {
+    openEditDriverModal(driverId);
   }
 }

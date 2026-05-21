@@ -78,7 +78,7 @@ function canAccess(section) {
     secretary:   ['dashboard', 'meetings', 'conduct'],
     treasurer:   ['dashboard', 'payments', 'conduct'],
     security:    ['vehicles', 'flags', 'conduct'],
-    owner:       ['vehicles', 'payments', 'meetings', 'flags', 'documents', 'conduct'],
+    owner:       ['vehicles', 'drivers', 'payments', 'meetings', 'flags', 'documents', 'conduct'],
   };
 
   return (access[user.role] || []).includes(section);

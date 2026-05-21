@@ -15,8 +15,13 @@ def lambda_handler(event, context):
     method = event.get('httpMethod', '')
     path_params = event.get('pathParameters') or {}
     owner_id = path_params.get('id')
+    resource = event.get('resource') or event.get('path') or ''
 
-    if owner_id:
+    if owner_id and resource.endswith('/drivers'):
+        # /owners/{id}/drivers
+        if method == 'GET':
+            return _list_drivers(owner_id)
+    elif owner_id:
         # /owners/{id}
         if method == 'GET':
             return _get(owner_id)
@@ -108,6 +113,21 @@ def _delete(owner_id):
     # table.delete_item(Key={'pk': f'OWNER#{owner_id}', 'sk': 'PROFILE'})
 
     return ok({'message': 'Owner deleted', 'owner_id': owner_id})
+
+
+def _list_drivers(owner_id):
+    # TODO: Confirm owner exists, then query DynamoDB for drivers scoped to them.
+    # owner_resp = table.get_item(Key={'pk': f'OWNER#{owner_id}', 'sk': 'PROFILE'})
+    # if not owner_resp.get('Item'):
+    #     return not_found(f'Owner {owner_id} not found')
+    # resp = table.query(
+    #     IndexName='entity-type-index',
+    #     KeyConditionExpression=Key('entity_type').eq('DRIVER'),
+    #     FilterExpression=Attr('owner_id').eq(owner_id),
+    # )
+    # drivers = resp.get('Items', [])
+    drivers = []
+    return ok({'drivers': drivers, 'count': len(drivers)})
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

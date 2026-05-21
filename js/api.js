@@ -2,7 +2,7 @@
 // API CLIENT — Zimeleni Scholar Transport System
 // ============================================================
 // Set this to your deployed API Gateway base URL (no trailing slash)
-const API_BASE_URL = 'https://7q9or1mk2m.execute-api.eu-west-1.amazonaws.com/Stage';
+const API_BASE_URL = 'https://7q9or1mk2m.execute-api.eu-west-1.amazonaws.com/prod';
 
 // ── Core request ──────────────────────────────────────────────
 
@@ -44,13 +44,14 @@ const AuthAPI = {
 // ── Owners ───────────────────────────────────────────────────
 
 const OwnersAPI = {
-  list:      ()         => _apiRequest('GET',    '/owners',                null),
-  get:       (id)       => _apiRequest('GET',    `/owners/${id}`,          null),
-  create:    (data)     => _apiRequest('POST',   '/owners',                data),
-  update:    (id, data) => _apiRequest('PUT',    `/owners/${id}`,          data),
-  delete:    (id)       => _apiRequest('DELETE', `/owners/${id}`,          null),
-  suspend:   (id)       => _apiRequest('PUT',    `/owners/${id}/suspend`,   null),
-  unsuspend: (id)       => _apiRequest('PUT',    `/owners/${id}/unsuspend`, null),
+  list:        ()         => _apiRequest('GET',    '/owners',                  null),
+  get:         (id)       => _apiRequest('GET',    `/owners/${id}`,            null),
+  create:      (data)     => _apiRequest('POST',   '/owners',                  data),
+  update:      (id, data) => _apiRequest('PUT',    `/owners/${id}`,            data),
+  delete:      (id)       => _apiRequest('DELETE', `/owners/${id}`,            null),
+  suspend:     (id)       => _apiRequest('PUT',    `/owners/${id}/suspend`,    null),
+  unsuspend:   (id)       => _apiRequest('PUT',    `/owners/${id}/unsuspend`,  null),
+  listDrivers: (id)       => _apiRequest('GET',    `/owners/${id}/drivers`,    null),
 };
 
 // ── Vehicles ─────────────────────────────────────────────────
@@ -141,9 +142,7 @@ const FilesAPI = {
   getUploadUrl: (folder, file, contentType) =>
     _apiRequest('POST', '/files', { folder, file, content_type: contentType }),
   getDeleteUrl: (folder, file) =>
-    _apiRequest('DELETE',
-      `/files?folder=${encodeURIComponent(folder)}&file=${encodeURIComponent(file)}`,
-      null),
+    _apiRequest('DELETE', '/files', { folder, file }),
 };
 
 // ── Search ───────────────────────────────────────────────────

@@ -33,6 +33,7 @@ def lambda_handler(event, context):
 # ── Handlers ──────────────────────────────────────────────────────────────────
 
 def _list():
+    # Returns every driver. Owner-scoped fetches go through /owners/{id}/drivers.
     # TODO: Query DynamoDB
     # resp = table.query(
     #     IndexName='entity-type-index',
@@ -46,7 +47,7 @@ def _list():
 def _create(event):
     body = _parse_body(event)
 
-    for field in ('name', 'id_number', 'license_number', 'phone'):
+    for field in ('name', 'id_number', 'license_number', 'phone', 'owner_id'):
         if not body.get(field):
             return bad_request(f'{field} is required')
 
@@ -63,6 +64,7 @@ def _create(event):
     #     'license_number': body['license_number'],
     #     'license_expiry': body.get('license_expiry', ''),
     #     'phone': body['phone'],
+    #     'owner_id': body['owner_id'],
     #     'created_at': _now(),
     # })
 

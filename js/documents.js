@@ -414,19 +414,32 @@ async function deleteDocumentConfirm(id) {
 
   const ownerId = doc.ownerId;
 
-  // Delete from S3 via presigned DELETE URL
-  if (doc.s3Key) {
-    const parts  = doc.s3Key.split('/');
-    const file   = parts.pop();
-    const folder = parts.join('/');
-
-    const result = await FilesAPI.getDeleteUrl(folder, file);
-    if (result.ok && result.data?.url) {
-      await fetch(result.data.url, { method: 'DELETE' }).catch(console.error);
-    }
+  if (!doc.s3Key) {
+    showToast('No file stored for this document.', 'warning');
+    return;
   }
 
-  deleteDocument(id);
-  showToast('Document deleted', 'warning');
-  _renderDocumentsForOwner(ownerId);
+  const parts  = doc.s3Key.split('/');
+  const file   = parts.pop();
+  const folder = parts.join('/');
+
+  try {
+    // Step 1: ask backend for a presigned DELETE URL
+    const urlResult = await FilesAPI.getDeleteUrl(folder, file);
+    if (!urlResult.ok || !urlResult.data?.url) {
+      throw new Error(urlResult.data?.error || 'Failed to get delete URL from server.');
+    }
+
+    // Step 2: issue DELETE directly to S3 with the presigned URL
+    const s3Response = await fetch(urlResult.data.url, { method: 'DELETE' });
+    if (!s3Response.ok) {
+      throw new Error('File deletion from storage failed. Please try again.');
+    }
+
+    deleteDocument(id);
+    showToast('Document deleted', 'warning');
+    _renderDocumentsForOwner(ownerId);
+  } catch (err) {
+    showToast(err.message || 'Failed to delete document.', 'danger');
+  }
 }

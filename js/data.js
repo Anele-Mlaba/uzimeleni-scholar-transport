@@ -58,6 +58,14 @@ let _s3Docs = {};
 
 // ── Field mappers: API ↔ frontend model ───────────────────────
 
+// Normalize status casing so UI comparisons (e.g. status === 'Suspended') don't break
+// when the backend returns 'suspended', 'SUSPENDED', etc.
+function _normalizeStatus(s) {
+  if (!s) return 'Active';
+  const lower = String(s).trim().toLowerCase();
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
+}
+
 function _fromApiOwner(o) {
   const parts = (o.name || '').trim().split(' ');
   return {
@@ -68,7 +76,7 @@ function _fromApiOwner(o) {
     phone:        o.phone           || '',
     email:        o.email           || '',
     address:      o.address         || '',
-    status:       o.status          || 'Active',
+    status:       _normalizeStatus(o.status),
     numberOfCars: o.number_of_cars  != null ? parseInt(o.number_of_cars) : 0,
   };
 }
@@ -123,7 +131,7 @@ function _fromApiDriver(d) {
     licenseNumber: d.license_number  || '',
     licenseExpiry: d.license_expiry  || '',
     phone:         d.phone           || '',
-    status:        d.status          || 'Active',
+    status:        _normalizeStatus(d.status),
     ownerId:       d.owner_id        || null,
   };
 }
@@ -220,7 +228,10 @@ async function refreshVehicles() {
 }
 
 async function refreshDrivers() {
-  const result = await DriversAPI.list();
+  const user   = getCurrentUser();
+  const result = (user && user.role === 'owner' && user.ownerId)
+    ? await OwnersAPI.listDrivers(user.ownerId)
+    : await DriversAPI.list();
   if (result.ok && Array.isArray(result.data.drivers)) {
     drivers = result.data.drivers.map(_fromApiDriver);
   }
